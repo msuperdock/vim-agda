@@ -73,7 +73,6 @@ endfunction
 " Callback function for the Agda job.
 function s:handle_event(id, data, event)
   for l:line in a:data
-    echom l:line
     call s:handle_line(l:line)
   endfor
 endfunction
@@ -331,7 +330,7 @@ endfunction
 " ### Output
 
 " Print the given output in the Agda buffer.
-function s:handle_output(type, payload)
+function s:handle_output(type, output)
   " Save initial window.
   let l:window = winnr()
 
@@ -353,7 +352,7 @@ function s:handle_output(type, payload)
   " Write output.
   let &l:readonly = 0
   silent %delete _
-  silent put =a:payload
+  silent put =a:output
   execute 'normal! ggdd'
   let &l:readonly = 1
 
@@ -392,7 +391,13 @@ endfunction
 
 " Get id of interaction point at cursor, or return -1 on failure.
 function s:point_lookup()
-  if !exists('g:agda_job') || !exists('s:code_file') || !exists('s:code_window')
+  let l:loaded
+    \ = exists('g:agda_job')
+    \ && exists('s:code_file')
+    \ && exists('s:code_window')
+    \ && exists('s:points')
+
+  if !l:loaded
     echom 'Agda not loaded.'
     return -1
   elseif expand('%:p') !=# s:code_file
