@@ -20,8 +20,9 @@ syntax match agdaType
   \ '[^[:space:].;{}()@"]\+\.\@='
   \ nextgroup=agdaTypeDot
 
-syntax match agdaMixfixUnderscore '_' contained
-syntax match agdaTypeDot '\.' contained
+syntax match agdaAs '@'
+syntax match agdaDot '\.' contained
+syntax match agdaUnderscore '_' contained
 
 " ## Keywords
 
@@ -92,18 +93,19 @@ syntax region agdaString start='"' skip='\\"' end='"\|$'
 syntax match agdaHole '?[[:space:]\n.;{}()@"]\@='
 syntax region agdaHole start='{!' end='!}'
 
-" ## Highlighting
+" ## Highlights
 
+highlight default link agdaAs agdaOperator
 highlight default link agdaChar agdaString
 highlight default link agdaComment Comment
 highlight default link agdaHole WarningMsg
 highlight default link agdaKeyword Statement
-highlight default link agdaMixfixUnderscore Operator
 highlight default link agdaOperator Operator
 highlight default link agdaPragma SpecialComment
 highlight default link agdaString String
-highlight default link agdaTo Statement
+highlight default link agdaTo agdaKeyword
 highlight default link agdaType Type
+highlight default link agdaUnderscore agdaOperator
 
 " ## Variable
 
