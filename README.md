@@ -13,7 +13,7 @@ The syntax highlighting uses the following basic approach:
 - All other identifiers are treated as ordinary identifiers.
 
 As a result, we support interaction with the agda executable, without
-sacrificing the ability to quickly open and view syntax-highlighted code.
+sacrificing the ability to quickly open and view syntax-highlighted Agda code.
 
 ## Functions
 
@@ -27,7 +27,8 @@ Only a few functions are currently supported:
 
 ## Alternatives
 
-This plugin draws heavily on ideas & code from each of the following:
+This plugin draws heavily on ideas & code from each of the following plugins.
+Here's a comparison:
 
 [derekelkins/agda-vim](https://github.com/derekelkins/agda-vim)
 
