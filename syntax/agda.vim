@@ -22,6 +22,7 @@ syntax match agdaType
 
 syntax match agdaAs '@'
 syntax match agdaDot '\.' contained
+syntax match agdaEllipses '\.\.\.[[:space:]\n;{}()@"]\@='
 syntax match agdaUnderscore '_' contained
 
 " ## Keywords
@@ -147,6 +148,7 @@ syntax region agdaHole start='{!' end='!}\|$'
 highlight default link agdaAs agdaOperator
 highlight default link agdaChar agdaString
 highlight default link agdaComment Comment
+highlight default link agdaEllipses agdaOperator
 highlight default link agdaHole WarningMsg
 highlight default link agdaKeyword Statement
 highlight default link agdaNumber Number
