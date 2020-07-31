@@ -1,80 +1,112 @@
-" File: ~/.vim/syntax/agda.vim
+" ## Identifiers
 
-" This is reproduced from 
-" http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.VIMEditing
-" for convenience
+" Match identifiers not starting with capital letter.
+syntax match agdaIdentifier
+  \ '[^[:space:].;{}()@"]\+[[:space:]\n;{}()@"]\@='
+  \ contains=agdaMixfixUnderscore
 
-if version < 600
-    syntax clear
-elseif exists("b:current_syntax")
-    finish
-endif
-
-" To tokenize, the best pattern I've found so far is this:
-"   (^|\s|[.(){};])@<=token($|\s|[.(){};])@=
-" The patterns @<= and @= look behind and ahead, respectively, without matching.
-
-" `agda --vim` extends these groups:
-"   agdaConstructor
-"   agdaFunction
-"   agdaInfixConstructor
-"   agdaInfixFunction
-
-" Any identifier not starting with a capital letter is an ordinary identifier.
-syntax match agdaIdentifier "[^.[:space:](){};_]\+"
-
-" Allow custom color for underscore in mixfix operator.
-syntax match agdaMixfixUnderscore "_"
-
-" Any identifier consisting of only non-letters is an operator.
+" Match identifiers not containing a letter.
 syntax match agdaOperator
-  \ "[^[:alpha:][:space:](){};]\+\($\|\ze[[:space:](){};_]\)"
+  \ '[^[:alpha:][:space:].;{}()@"]\+[[:space:]\n;{}()@"]\@='
+  \ contains=agdaMixfixUnderscore
 
-" Any identifier starting with capital letter is a type.
-syntax match agdaType "[_¬]\?[A-Z][^.[:space:](){};]*" nextgroup=agdaTypeDot
+" Match identifiers starting with capital letter.
+syntax match agdaType
+  \ '[_¬]\?[A-Z][^[:space:].;{}()@"]*[[:space:]\n;{}()@"]\@='
+  \ nextgroup=agdaTypeDot
 
-" Any identifier followed by a dot is a type.
-syntax match agdaType "[^.[:space:](){};]\+\ze\." nextgroup=agdaTypeDot
+" Match identifiers followed by a dot.
+syntax match agdaType
+  \ '[^[:space:].;{}()@"]\+\.\@='
+  \ nextgroup=agdaTypeDot
 
-" Allow custom color for dot after type.
-syntax match agdaTypeDot "\." contained
+syntax match agdaMixfixUnderscore '_' contained
+syntax match agdaTypeDot '\.' contained
 
-syntax match   agdaKeywords     "\v(^|\s|[.(){};])@<=(abstract|data|hiding|import|as|infix|infixl|infixr|module|mutual|open|primitive|private|public|record|renaming|rewrite|using|where|with|field|constructor|instance|syntax|pattern|inductive|coinductive|to|let|in|postulate|variable)($|\s|[.(){};])@="
-syntax match   agdaNumber       "\v(^|\s|[.(){};])@<=-?[0-9]+($|\s|[.(){};])@="
-syntax match   agdaCharCode     contained "\\\([0-9]\+\|o[0-7]\+\|x[0-9a-fA-F]\+\|[\"\\'&\\abfnrtv]\|^[A-Z^_\[\\\]]\)"
-syntax match   agdaCharCode     contained "\v\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|syntax|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL)"
-syntax match   agdaCharCodeErr  contained "\\&\|'''\+"
-syntax region  agdaString       start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=agdaCharCode
-syntax match   agdaString       "'.'"
-syntax match   agdaHole         "\v(^|\s|[.(){};])@<=(\?)($|\s|[.(){};])@="
-syntax region  agdaX            oneline matchgroup=agdaHole start="{!" end="!}"
-syntax match   agdaLineComment  "\v(^|\s|[.(){};])@<=--.*$" contains=@agdaInComment
-syntax region  agdaBlockComment start="{-"  end="-}" contains=agdaBlockComment,@agdaInComment
-syntax region  agdaPragma       start="{-#" end="#-}"
-syntax cluster agdaInComment    contains=agdaTODO,agdaFIXME,agdaXXX
-syntax keyword agdaTODO         contained TODO
-syntax keyword agdaFIXME        contained FIXME
-syntax keyword agdaXXX          contained XXX
+" ## Keywords
 
-highlight default link agdaNumber           Number
-highlight default link agdaString           String
-highlight default link agdaConstructor      Constant
-highlight default link agdaCharCode         SpecialChar
-highlight default link agdaCharCodeErr      Error
-highlight default link agdaHole             WarningMsg
-highlight default link agdaKeywords         Statement
-highlight default link agdaOperator         Operator
-highlight default link agdaInfixConstructor Operator
-highlight default link agdaInfixFunction    Operator
-highlight default link agdaLineComment      Comment
-highlight default link agdaBlockComment     Comment
-highlight default link agdaPragma           Comment
-highlight default      agdaTODO             cterm=bold,underline ctermfg=2 " green
-highlight default      agdaFIXME            cterm=bold,underline ctermfg=3 " yellow
-highlight default      agdaXXX              cterm=bold,underline ctermfg=1 " red
+syntax match agdaKeyword 'abstract[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'constructor[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'data[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'do[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'eta-equality[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'field[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'forall[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'hiding[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'import[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'in[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'inductive[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'infix[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'infixl[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'infixr[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'instance[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'let[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'macro[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'module[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'mutual[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'no-eta-equality[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'open[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'overlap[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'pattern[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'postulate[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'primitive[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'private[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'public[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'quote[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'quoteContext[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'quoteGoal[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'quoteTerm[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'record[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'rewrite[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'syntax[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'tactic[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'unquote[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'unquoteDecl[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'unquoteDef[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'using[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'variable[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'where[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'with[[:space:]\n.;{}()@"]\@='
 
+" ## Renaming
+
+syntax match agdaKeyword 'renaming[[:space:]\n.;{}()@"]\@=' skipnl skipwhite
+  \ nextgroup=agdaRenaming
+syntax region agdaRenaming start='(' end=')' contained
+  \ contains=agdaIdentifier,agdaOperator,agdaTo,agdaType
+syntax match agdaTo 'to[[:space:]\n.;{}()@"]\@=' contained
+
+" ## Comments
+
+syntax match agdaComment '--.*'
+syntax region agdaComment start='{-' end='-}' contains=agdaBlockComment
+syntax region agdaPragma start='{-#' end='#-}'
+
+" ## Literals
+
+syntax match agdaChar "'.'"
+syntax region agdaString start='"' skip='\\"' end='"\|$'
+
+" ## Holes
+
+syntax match agdaHole '?[[:space:]\n.;{}()@"]\@='
+syntax region agdaHole start='{!' end='!}'
+
+" ## Highlighting
+
+highlight default link agdaChar agdaString
+highlight default link agdaComment Comment
+highlight default link agdaHole WarningMsg
+highlight default link agdaKeyword Statement
 highlight default link agdaMixfixUnderscore Operator
+highlight default link agdaOperator Operator
+highlight default link agdaPragma SpecialComment
+highlight default link agdaString String
+highlight default link agdaTo Statement
 highlight default link agdaType Type
 
-" Prevent agda-vim plugin from overriding syntax.
-let b:current_syntax = 1
+" ## Variable
+
+" Ensure no other syntax file is loaded.
+let b:current_syntax = 'agda'
+

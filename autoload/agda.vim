@@ -73,7 +73,6 @@ endfunction
 " Callback function for the Agda job.
 function s:handle_event(id, data, event)
   for l:line in a:data
-    echom (l:line)
     call s:handle_line(l:line)
   endfor
 endfunction
@@ -108,12 +107,12 @@ function s:handle_line(line)
     call s:handle_output('Error', l:json.info.message)
 
   " Handle context.
-  elseif l:json.kind == 'DisplayInfo' && l:json.info.kind == 'GoalType'
-    call s:handle_output('Context', l:json.info.payload)
+  elseif l:json.kind == 'DisplayInfo' && l:json.info.kind == 'GoalSpecific'
+    call s:handle_environment(l:json.info.goalInfo)
 
   " Handle give.
   elseif l:json.kind == 'GiveAction'
-    call s:handle_give(l:json.giveResult, l:json.interactionPoint)
+    call s:handle_give(l:json.giveResult.str, l:json.interactionPoint)
 
   " Handle interaction points.
   elseif l:json.kind == 'InteractionPoints'
@@ -136,9 +135,9 @@ function s:handle_goals_all(visible, invisible, warnings, errors)
 
   let l:outputs
     \ = (a:visible == []
-    \   ? [] : [s:section('Goals', s:handle_goals(a:visible))])
+    \   ? [] : [s:section('Goals', s:handle_goals(a:visible, 1))])
     \ + (a:invisible == []
-    \   ? [] : [s:section('Goals (invisible)', s:handle_goals(a:invisible))]) 
+    \   ? [] : [s:section('Goals (implicit)', s:handle_goals(a:invisible, 0))])
     \ + (a:warnings == ''
     \   ? [] : [s:section('Warnings', a:warnings)])
     \ + (a:errors == ''
@@ -152,12 +151,27 @@ function s:handle_goals_all(visible, invisible, warnings, errors)
   endif
 endfunction
 
-function s:handle_goals(goals)
-  return join(map(a:goals, 's:handle_goal(v:val)'), '')
+function s:handle_goals(goals, visible)
+  return join(map(a:goals, 's:handle_goal(v:val, a:visible)'), '')
 endfunction
 
-function s:handle_goal(goal)
-  return "goal\n"
+function s:handle_goal(goal, visible)
+  if a:goal.kind ==# 'OfType'
+    return (a:visible ? '?' : '')
+      \ . a:goal.constraintObj
+      \ . ' : '
+      \ . a:goal.type
+      \ . "\n"
+
+  elseif a:goal.kind ==# 'JustSort'
+    return 'Sort '
+      \ . a:goal.constraintObj
+      \ . "\n"
+
+  else
+    return '(unrecognized goal)'
+
+  endif
 endfunction
 
 function s:section(name, contents)
@@ -216,6 +230,33 @@ function s:handle_points(points)
   " Restore original position.
   execute l:window . 'wincmd w'
   call cursor(l:line, l:col)
+endfunction
+
+" ### Environment
+
+function s:handle_environment(info)
+  let l:output
+    \ = 'Goal: '
+    \ . a:info.type
+    \ . "\n"
+    \ . repeat('─', 60)
+    \ . "\n"
+    \ . s:handle_entries(a:info.entries)
+
+  call s:handle_output('Environment', l:output)
+endfunction
+
+function s:handle_entries(entries)
+  return join(map(a:entries, 's:handle_entry(v:val)'), '')
+    \ . "\n"
+endfunction
+
+function s:handle_entry(entry)
+  return a:entry.reifiedName
+    \ . ' : '
+    \ . a:entry.binding
+    \ . (a:entry.inScope ? '' : ' (not in scope)')
+    \ . "\n"
 endfunction
 
 " ### Give
@@ -364,7 +405,7 @@ function s:point_lookup()
   for l:point in s:points
     if s:point_compare([l:line, l:col], l:point.start) >= 0
       \ && s:point_compare([l:line, l:col], l:point.end) <= 0
-      return l:point.id
+      return l:point.id.id
     endif
   endfor
 
