@@ -73,6 +73,7 @@ endfunction
 " Callback function for the Agda job.
 function s:handle_event(id, data, event)
   for l:line in a:data
+    echom l:line
     call s:handle_line(l:line)
   endfor
 endfunction
@@ -104,7 +105,7 @@ function s:handle_line(line)
 
   " Handle errors.
   elseif l:json.kind == 'DisplayInfo' && l:json.info.kind == 'Error'
-    call s:handle_output('Error', l:json.info.message)
+    call s:handle_output('Error', l:json.info.message . "\n\n")
 
   " Handle context.
   elseif l:json.kind == 'DisplayInfo' && l:json.info.kind == 'GoalSpecific'
