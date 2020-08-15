@@ -24,6 +24,10 @@ Only a few functions are currently supported:
 | `agda#load()` | Load or reload agda. |
 | `agda#environment()` | Display environment for hole at cursor. |
 | `agda#give()` | Give or refine expression for hole at cursor. |
+| `agda#unused()` | Check the current file for unused code. |
+
+The `agda#unused()` function requires the `agda-unused` executable to be
+installed on your system; see [here](https://github.com/msuperdock/agda-unused).
 
 ## Alternatives
 

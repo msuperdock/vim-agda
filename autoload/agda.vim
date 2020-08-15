@@ -54,6 +54,13 @@ function agda#give()
     \ )
 endfunction
 
+" Check for unused code in the current module.
+function agda#unused()
+  update
+  call jobstart(['agda-unused', '--local', expand('%'), '--json']
+    \ , {'on_stdout': function('s:handle_unused')})
+endfunction
+
 " Send command to the Agda job.
 function s:send(command)
   call chansend(g:agda_job
@@ -77,6 +84,31 @@ function s:handle_event(id, data, event)
   endfor
 endfunction
 
+" Callback function for the agda-unused job.
+function s:handle_unused(id, data, event)
+  " Check if output is non-empty; return if not.
+  if len(a:data) == 0
+    return
+  endif
+
+  " Decode JSON; return if unsuccessful.
+  try
+    let l:json = json_decode(a:data[0])
+  catch
+    return
+  endtry
+
+  " Handle output.
+  if l:json.type ==# 'none'
+    silent! bdelete Agda
+    echom trim(l:json.message)
+  elseif l:json.type ==# 'unused'
+    call s:handle_output('Unused', l:json.message)
+  elseif l:json.type ==# 'error'
+    call s:handle_output('Unused', l:json.message)
+  endif
+endfunction
+
 " ### Line
 
 " Handle a line of data from Agda.
@@ -94,7 +126,7 @@ function s:handle_line(line)
   endtry
 
   " Handle goals.
-  if l:json.kind == 'DisplayInfo' && l:json.info.kind == 'AllGoalsWarnings'
+  if l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'AllGoalsWarnings'
     call s:handle_goals_all
       \ ( l:json.info.visibleGoals
       \ , l:json.info.invisibleGoals
@@ -103,23 +135,23 @@ function s:handle_line(line)
       \ )
 
   " Handle errors.
-  elseif l:json.kind == 'DisplayInfo' && l:json.info.kind == 'Error'
-    call s:handle_output('Error', l:json.info.message . "\n\n")
+  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'Error'
+    call s:handle_output('Error', l:json.info.message)
 
   " Handle context.
-  elseif l:json.kind == 'DisplayInfo' && l:json.info.kind == 'GoalSpecific'
+  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'GoalSpecific'
     call s:handle_environment(l:json.info.goalInfo)
 
   " Handle give.
-  elseif l:json.kind == 'GiveAction'
+  elseif l:json.kind ==# 'GiveAction'
     call s:handle_give(l:json.giveResult.str, l:json.interactionPoint)
 
   " Handle interaction points.
-  elseif l:json.kind == 'InteractionPoints'
+  elseif l:json.kind ==# 'InteractionPoints'
     call s:handle_points(l:json.interactionPoints)
 
   " Handle status messages.
-  elseif l:json.kind == 'RunningInfo'
+  elseif l:json.kind ==# 'RunningInfo'
     call s:handle_message(l:json.message)
 
   endif
@@ -359,6 +391,8 @@ function s:handle_output(type, output)
   " Restore original window.
   execute l:window . 'wincmd w'
 endfunction
+
+" ## Unused
 
 " ## Utilities
 
