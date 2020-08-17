@@ -240,9 +240,13 @@ function s:handle_points(points)
   let l:index = 0
 
   while l:index < len(a:points)
-    let l:pos1 = searchpos('\v(^|\s)\zs\?\ze($|\s)', 'nWz')
-    let l:pos2 = searchpos('\v\{\!\_.{-}\!\}', 'nWz')
-    let l:pos3 = searchpos('\v\{\!\_.{-}\!\zs\}', 'nWz')
+    let l:pat1 = '\m[[:space:]\n.;{}()@"]\zs?\ze[[:space:]\n.;{}()@]'
+    let l:pat2 = '\m{!\_.\{-}!}'
+    let l:pat3 = '\m{!\_.\{-}!\zs}'
+
+    let l:pos1 = searchpos(l:pat1, 'nWz')
+    let l:pos2 = searchpos(l:pat2, 'nWz')
+    let l:pos3 = searchpos(l:pat3, 'nWz')
 
     let l:line1 = l:pos1[0]
     let l:line2 = l:pos2[0]
@@ -362,7 +366,7 @@ endfunction
 " ### Message
 
 function s:handle_message(message)
-  echom trim(substitute(a:message, '\v \(.*\)', '', 'g'))
+  echom trim(substitute(a:message, '\m (.*)', '', 'g'))
 endfunction
 
 " ### Output
