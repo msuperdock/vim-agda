@@ -113,17 +113,22 @@ endfunction
 
 " Handle a line of data from Agda.
 function s:handle_line(line)
-  " Check if line is enclosed in brackets; return if not.
-  if a:line !~ '\v^\{.*\}$'
+  " Ignore interaction prompt.
+  if a:line ==# 'JSON> '
+    let s:data = ''
     return
   endif
 
-  " Decode JSON; return if unsuccessful.
+  " Try decoding JSON; store line if decoding JSON fails.
   try
-    let l:json = json_decode(a:line)
+    let l:json = json_decode(s:data . a:line)
   catch
+    let s:data .= a:line
     return
   endtry
+
+  " Reset data if decoding JSON succeeds.
+  let s:data = ''
 
   " Handle goals.
   if l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'AllGoalsWarnings'
@@ -191,8 +196,9 @@ function s:handle_goal(goal, visible)
   if a:goal.kind ==# 'OfType'
     return (a:visible ? '?' : '')
       \ . a:goal.constraintObj
-      \ . ' : '
-      \ . a:goal.type
+      \ . "\n"
+      \ . '  : '
+      \ . join(split(a:goal.type, '\n'), "\n    ")
       \ . "\n"
 
   elseif a:goal.kind ==# 'JustSort'
