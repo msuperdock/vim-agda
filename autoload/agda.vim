@@ -63,6 +63,7 @@ endfunction
 
 " Send command to the Agda job.
 function s:send(command)
+  call s:handle_loading()
   call chansend(g:agda_job
     \ , 'IOTCM'
     \ . ' "' . s:code_file . '"'
@@ -373,11 +374,14 @@ endfunction
 
 " Print the given output in the Agda buffer.
 function s:handle_output(type, output)
-  " Save initial window.
-  let l:window = winnr()
+  " Record that Agda is no longer loading.
+  let s:loading = 0
 
   " Clear echo area.
   echo ''
+
+  " Save initial window.
+  let l:current = winnr()
 
   " Switch to Agda buffer.
   let l:agda = bufwinnr('Agda')
@@ -400,7 +404,36 @@ function s:handle_output(type, output)
   let &l:readonly = 1
 
   " Restore original window.
-  execute l:window . 'wincmd w'
+  execute l:current . 'wincmd w'
+endfunction
+
+" Display a loading message in the Agda buffer name.
+function s:handle_loading()
+  " Check whether Agda is already loading.
+  if exists('s:loading') && s:loading > 0
+    return
+  endif
+
+  " Record that Agda is loading.
+  let s:loading = 1
+
+  " Save initial window.
+  let l:current = winnr()
+
+  " Get Agda buffer window.
+  let l:agda = bufwinnr('Agda')
+
+  " Check if Agda buffer exists.
+  if l:agda < 0
+    return
+  endif
+
+  " Change Agda buffer name.
+  execute l:agda . 'wincmd w'
+  execute 'file ' . expand('%') . ' [loading]'
+
+  " Restore original window.
+  execute l:current . 'wincmd w'
 endfunction
 
 " ## Unused
