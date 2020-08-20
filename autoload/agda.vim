@@ -1,5 +1,7 @@
 " ## Commands
 
+" ### Load
+
 " Load current file with no command-line options.
 function agda#load()
   echom 'Loading Agda.'
@@ -20,6 +22,8 @@ function agda#load()
     \ )
 endfunction
 
+" ### Environment
+
 " Display context for hole at cursor.
 function agda#environment()
   let l:id = s:lookup()
@@ -36,7 +40,9 @@ function agda#environment()
     \ )
 endfunction
 
-" Give or refine expression for hole at cursor.
+" ### Give
+
+" Give expression for hole at cursor.
 function agda#give()
   let l:id = s:lookup()
 
@@ -46,13 +52,35 @@ function agda#give()
 
   let l:input = s:escape(input('Give: '))
 
-  call s:send('Cmd_refine_or_intro'
-    \ . ' False '
+  call s:send('Cmd_give'
+    \ . ' WithoutForce'
     \ . ' ' . l:id
     \ . ' noRange'
     \ . ' "' . l:input . '"'
     \ )
 endfunction
+
+" ### Refine
+
+" Refine expression for hole at cursor.
+function agda#refine()
+  let l:id = s:lookup()
+
+  if l:id < 0
+    return
+  endif
+
+  let l:input = s:escape(input('Refine: '))
+
+  call s:send('Cmd_refine_or_intro'
+    \ . ' False'
+    \ . ' ' . l:id
+    \ . ' noRange'
+    \ . ' "' . l:input . '"'
+    \ )
+endfunction
+
+" ### Unused
 
 " Check for unused code in the current module.
 function agda#unused()

@@ -23,7 +23,8 @@ Only a few functions are currently supported:
 | --- | --- |
 | `agda#load()` | Load or reload agda. |
 | `agda#environment()` | Display environment for hole at cursor. |
-| `agda#give()` | Give or refine expression for hole at cursor. |
+| `agda#give()` | Give expression for hole at cursor. |
+| `agda#refine()` | Refine expression for hole at cursor. |
 | `agda#unused()` | Check the current file for unused code. |
 
 The `agda#unused()` function requires the `agda-unused` executable to be
