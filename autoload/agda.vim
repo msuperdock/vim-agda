@@ -22,7 +22,7 @@ endfunction
 
 " Display context for hole at cursor.
 function agda#environment()
-  let l:id = s:point_lookup()
+  let l:id = s:lookup()
 
   if l:id < 0
     return
@@ -38,7 +38,7 @@ endfunction
 
 " Give or refine expression for hole at cursor.
 function agda#give()
-  let l:id = s:point_lookup()
+  let l:id = s:lookup()
 
   if l:id < 0
     return
@@ -150,7 +150,7 @@ function s:handle_line(line)
 
   " Handle give.
   elseif l:json.kind ==# 'GiveAction'
-    call s:handle_give(l:json.giveResult.str, l:json.interactionPoint)
+    call s:handle_give(l:json.giveResult.str, l:json.interactionPoint.id)
 
   " Handle interaction points.
   elseif l:json.kind ==# 'InteractionPoints'
@@ -228,51 +228,17 @@ endfunction
 
 " Initialize script-local points list.
 function s:handle_points(points)
-  " Save initial position.
-  let l:window = winnr()
-  let l:line = line('.')
-  let l:col = col('.')
-
-  " Go to beginning of code window.
-  execute s:code_window . 'wincmd w'
-  call cursor(1, 1)
-
   let s:points = []
-  let l:index = 0
 
-  while l:index < len(a:points)
-    let l:pat1 = '\m[[:space:]\n.;{}()@"]\zs?\ze[[:space:]\n.;{}()@]'
-    let l:pat2 = '\m{!\_.\{-}!}'
-    let l:pat3 = '\m{!\_.\{-}!\zs}'
-
-    let l:pos1 = searchpos(l:pat1, 'nWz')
-    let l:pos2 = searchpos(l:pat2, 'nWz')
-    let l:pos3 = searchpos(l:pat3, 'nWz')
-
-    let l:line1 = l:pos1[0]
-    let l:line2 = l:pos2[0]
-
-    if l:line1 > 0 && (l:line2 == 0 || s:point_compare(l:pos1, l:pos2) < 0)
-      let s:points
-        \ += [{ 'id': a:points[l:index], 'start': l:pos1, 'end': l:pos1 }]
-      call cursor(l:pos1)
-
-    elseif l:line2 > 0
-      let s:points
-        \ += [{ 'id': a:points[l:index], 'start': l:pos2, 'end': l:pos3 }]
-      call cursor(l:pos2)
-
-    else
-      break
-
+  " Only accept points with exactly one range.
+  for l:point in a:points
+    if len(l:point.range) == 1
+      call add(s:points,
+        \ { 'id': l:point.id
+        \ , 'range': l:point.range[0]
+        \ })
     endif
-
-    let l:index += 1
-  endwhile
-
-  " Restore original position.
-  execute l:window . 'wincmd w'
-  call cursor(l:line, l:col)
+  endfor
 endfunction
 
 " ### Environment
@@ -307,61 +273,10 @@ endfunction
 function s:handle_give(result, id)
   for l:point in s:points
     if l:point.id == a:id
-      call s:replace(s:code_window, l:point.start, l:point.end, a:result)
+      call s:replace(l:point.range, a:result)
       return
     endif
   endfor
-endfunction
-
-" Replace text at the given location, preserving cursor position.
-" Assume `str` does not contain any newline characters.
-function s:replace(window, start, end, str)
-  " Save window.
-  let l:window = winnr()
-  execute a:window . 'wincmd w'
-
-  " Save cursor position.
-  let l:line = line('.')
-  let l:col = col('.')
-
-  " Perform deletion.
-  call cursor(a:start)
-  if a:end[0] == a:start[0]
-    execute 'normal! ' . (a:end[1] - a:start[1] + 1) . 'x'
-  else
-    let l:command
-      \ = a:end[0] > a:start[0] + 1
-      \ ? (a:start[0] + 1) . ',' . (a:end[0] - 1) . 'd'
-      \ : ''
-    execute 'normal! d$'
-    execute l:command
-    call cursor(a:start[0] + 1, 1)
-    execute 'normal! ' . a:end[1] . 'x'
-    call cursor(a:start[0], 1)
-    execute 'normal! gJ'
-  endif
-
-  " Perform insertion.
-  call cursor(a:start[0], a:start[1] - 1)
-  execute 'normal! a' . a:str
-
-  " Restore cursor position.
-  if s:point_compare([l:line, l:col], a:start) <= 0
-    call cursor(l:line, l:col)
-  elseif s:point_compare([l:line, l:col], a:end) <= 0
-    call cursor(a:start)
-  elseif l:line == a:start[0] && l:line == a:end[0]
-    call cursor(a:start[0], l:col - (a:end[1] - a:start[1] + 1))
-  elseif l:line == a:end[0]
-    call cursor(a:start[0], l:col - a:end[1])
-  elseif a:end[0] == a:start[0]
-    call cursor(l:line, l:col)
-  else
-    call cursor(l:line - (a:end[0] - a:start[0] - 1), l:col)
-  endif
-
-  " Restore window.
-  execute l:window . 'wincmd w'
 endfunction
 
 " ### Message
@@ -436,8 +351,6 @@ function s:handle_loading()
   execute l:current . 'wincmd w'
 endfunction
 
-" ## Unused
-
 " ## Utilities
 
 function s:escape(str)
@@ -447,20 +360,18 @@ function s:escape(str)
   return l:str
 endfunction
 
-" Return -1 if point1 is before point2.
-" Return 1 if point1 is after point2.
-" Return 0 if point1 equals point2.
-function s:point_compare(point1, point2)
-  let [l:line1, l:col1] = a:point1
-  let [l:line2, l:col2] = a:point2
-
-  if l:line1 < l:line2
+" Both arguments must be dictionaries with `line` and `col` fields.
+" Return -1 if pos1 is before pos2.
+" Return 1 if pos1 is after pos2.
+" Return 0 if pos1 equals pos2.
+function s:compare(pos1, pos2)
+  if a:pos1.line < a:pos2.line
     return -1
-  elseif l:line1 > l:line2
+  elseif a:pos1.line > a:pos2.line
     return 1
-  elseif l:col1 < l:col2
+  elseif a:pos1.col < a:pos2.col
     return -1
-  elseif l:col1 > l:col2
+  elseif a:pos1.col > a:pos2.col
     return 1
   else
     return 0
@@ -468,7 +379,7 @@ function s:point_compare(point1, point2)
 endfunction
 
 " Get id of interaction point at cursor, or return -1 on failure.
-function s:point_lookup()
+function s:lookup()
   let l:loaded
     \ = exists('g:agda_job')
     \ && exists('s:code_file')
@@ -483,17 +394,75 @@ function s:point_lookup()
     return -1
   endif
 
-  let l:line = line('.')
-  let l:col = col('.')
+  let l:current =
+    \ { 'line': line('.')
+    \ , 'col': col('.')
+    \ }
 
   for l:point in s:points
-    if s:point_compare([l:line, l:col], l:point.start) >= 0
-      \ && s:point_compare([l:line, l:col], l:point.end) <= 0
-      return l:point.id.id
+    if s:compare(l:current, l:point.range.start) >= 0
+      \ && s:compare(l:current, l:point.range.end) <= 0
+      return l:point.id
     endif
   endfor
 
   echom 'Cursor not on hole.'
   return -1
+endfunction
+
+" Replace text at the given point, preserving cursor position.
+" Assume `str` does not contain any newline characters.
+function s:replace(point, str)
+  " Save window.
+  let l:window = winnr()
+  execute s:code_window . 'wincmd w'
+
+  " Save cursor position.
+  let l:line = line('.')
+  let l:col = col('.')
+  let l:current =
+    \ { 'line': l:line
+    \ , 'col': l:col
+    \ }
+
+  " Perform deletion.
+  call cursor(a:point.start.line, a:point.start.col)
+  if a:point.end.line == a:point.start.line
+    execute 'normal! ' . (a:point.end.col - a:point.start.col + 1) . 'x'
+  else
+    let l:command
+      \ = a:point.end.line > a:point.start.line + 1
+      \ ? (a:point.start.line + 1) . ',' . (a:point.end.line - 1) . 'd'
+      \ : ''
+    execute 'normal! d$'
+    execute l:command
+    call cursor(a:point.start.line + 1, 1)
+    execute 'normal! ' . a:point.end.col . 'x'
+    call cursor(a:point.start.line, 1)
+    execute 'normal! gJ'
+  endif
+
+  " Perform insertion.
+  call cursor(a:point.start.line, a:point.start.col - 1)
+  execute 'normal! a' . a:str
+
+  " Restore cursor position.
+  if s:compare(l:current, a:point.start) <= 0
+    call cursor(l:line, l:col)
+  elseif s:compare(l:current, a:point.end) <= 0
+    call cursor(a:point.start.line, a:point.start.col)
+  elseif l:line == a:point.start.line && l:line == a:point.end.line
+    call cursor(a:point.start.line
+      \ , l:col - (a:point.end.col - a:point.start.col + 1))
+  elseif l:line == a:point.end.line
+    call cursor(a:point.start.line, l:col - a:point.end.col)
+  elseif a:point.end.line == a:point.start.line
+    call cursor(l:line, l:col)
+  else
+    call cursor(l:line - (a:point.end.line - a:point.start.line - 1), l:col)
+  endif
+
+  " Restore window.
+  execute l:window . 'wincmd w'
 endfunction
 
