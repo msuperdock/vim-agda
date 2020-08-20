@@ -63,7 +63,7 @@ endfunction
 
 " Send command to the Agda job.
 function s:send(command)
-  call s:handle_loading()
+  call s:handle_loading(1)
   call chansend(g:agda_job
     \ , 'IOTCM'
     \ . ' "' . s:code_file . '"'
@@ -147,6 +147,11 @@ function s:handle_line(line)
   " Handle context.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'GoalSpecific'
     call s:handle_environment(l:json.info.goalInfo)
+
+  " Handle introduction not found error.
+  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'IntroNotFound'
+    call s:handle_loading(0)
+    echom 'No introduction forms found.'
 
   " Handle give.
   elseif l:json.kind ==# 'GiveAction'
@@ -289,9 +294,6 @@ endfunction
 
 " Print the given output in the Agda buffer.
 function s:handle_output(type, output)
-  " Record that Agda is no longer loading.
-  let s:loading = 0
-
   " Clear echo area.
   echo ''
 
@@ -322,30 +324,28 @@ function s:handle_output(type, output)
   execute l:current . 'wincmd w'
 endfunction
 
-" Display a loading message in the Agda buffer name.
-function s:handle_loading()
-  " Check whether Agda is already loading.
-  if exists('s:loading') && s:loading > 0
-    return
-  endif
-
-  " Record that Agda is loading.
-  let s:loading = 1
-
+" Display loading status in Agda buffer name.
+" A status of 1 indicates loading.
+" A status of 0 indicates not loading.
+function s:handle_loading(status)
   " Save initial window.
   let l:current = winnr()
 
   " Get Agda buffer window.
   let l:agda = bufwinnr('Agda')
-
-  " Check if Agda buffer exists.
   if l:agda < 0
     return
   endif
 
-  " Change Agda buffer name.
+  " Change Agda buffer name, if necessary.
   execute l:agda . 'wincmd w'
-  execute 'file ' . expand('%') . ' [loading]'
+  let l:file = expand('%')
+  let l:match = match(l:file, '\v \[loading\]$')
+  if a:status == 0 && l:match >= 0 
+    execute 'file ' . l:file[: l:match - 1]
+  elseif a:status > 0 && l:match < 0
+    execute 'file ' . l:file . ' [loading]'
+  endif
 
   " Restore original window.
   execute l:current . 'wincmd w'
