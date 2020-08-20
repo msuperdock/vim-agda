@@ -29,7 +29,7 @@ function agda#environment()
   endif
 
   call s:send('Cmd_goal_type_context'
-    \ . ' AsIs'
+    \ . ' Normalised'
     \ . ' ' . l:id
     \ . ' noRange'
     \ . ' ""'
@@ -386,6 +386,7 @@ function s:handle_output(type, output)
   else
     belowright 10split Agda
     let &l:buftype = 'nofile'
+    let &l:swapfile = 0
   endif
 
   " Change buffer name.
