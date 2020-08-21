@@ -368,7 +368,7 @@ function s:handle_loading(status)
   " Change Agda buffer name, if necessary.
   execute l:agda . 'wincmd w'
   let l:file = expand('%')
-  let l:match = match(l:file, '\v \[loading\]$')
+  let l:match = match(l:file, '\m \[loading\]$')
   if a:status == 0 && l:match >= 0 
     execute 'file ' . l:file[: l:match - 1]
   elseif a:status > 0 && l:match < 0
@@ -383,8 +383,8 @@ endfunction
 
 function s:escape(str)
   let l:str = a:str
-  let l:str = substitute(l:str, '\', '\\\\', 'g')
-  let l:str = substitute(l:str, '"', '\\"', 'g')
+  let l:str = substitute(l:str, '\m\', '\\\\', 'g')
+  let l:str = substitute(l:str, '\m"', '\\"', 'g')
   return l:str
 endfunction
 
