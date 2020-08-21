@@ -428,12 +428,12 @@ function s:lookup()
 
   let l:current =
     \ { 'line': line('.')
-    \ , 'col': col('.')
+    \ , 'col': virtcol('.')
     \ }
 
   for l:point in s:points
     if s:compare(l:current, l:point.range.start) >= 0
-      \ && s:compare(l:current, l:point.range.end) <= 0
+      \ && s:compare(l:current, l:point.range.end) < 0
       return l:point.id
     endif
   endfor
