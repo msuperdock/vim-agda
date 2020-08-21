@@ -52,6 +52,10 @@ function agda#give()
 
   let l:input = s:escape(input('Give: '))
 
+  if l:input ==# ''
+    return
+  endif
+
   call s:send('Cmd_give'
     \ . ' WithoutForce'
     \ . ' ' . l:id
