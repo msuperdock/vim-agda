@@ -251,7 +251,7 @@ function s:section(name, contents)
     \ . ' '
     \ . a:name
     \ . ' '
-    \ . repeat('─', 58 - len(a:name))
+    \ . repeat('─', 59 - len(a:name))
     \ . "\n"
     \ . a:contents
     \ . "\n"
@@ -279,7 +279,7 @@ endfunction
 function s:handle_environment(info)
   let l:output
     \ = s:signature('Goal', a:info.type)
-    \ . repeat('─', 64)
+    \ . repeat('─', 65)
     \ . "\n"
     \ . s:handle_entries(a:info.entries)
 
