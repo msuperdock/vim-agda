@@ -232,12 +232,8 @@ endfunction
 
 function s:handle_goal(goal, visible)
   if a:goal.kind ==# 'OfType'
-    return (a:visible ? '?' : '')
-      \ . a:goal.constraintObj
-      \ . "\n"
-      \ . '  : '
-      \ . join(split(a:goal.type, '\n'), "\n    ")
-      \ . "\n"
+    let l:name = (a:visible ? '?' : '') . a:goal.constraintObj
+    return s:signature(l:name, a:goal.type)
 
   elseif a:goal.kind ==# 'JustSort'
     return 'Sort '
@@ -255,7 +251,7 @@ function s:section(name, contents)
     \ . ' '
     \ . a:name
     \ . ' '
-    \ . repeat('─', 54 - len(a:name))
+    \ . repeat('─', 58 - len(a:name))
     \ . "\n"
     \ . a:contents
     \ . "\n"
@@ -282,10 +278,8 @@ endfunction
 
 function s:handle_environment(info)
   let l:output
-    \ = 'Goal: '
-    \ . a:info.type
-    \ . "\n"
-    \ . repeat('─', 60)
+    \ = s:signature('Goal', a:info.type)
+    \ . repeat('─', 64)
     \ . "\n"
     \ . s:handle_entries(a:info.entries)
 
@@ -298,11 +292,8 @@ function s:handle_entries(entries)
 endfunction
 
 function s:handle_entry(entry)
-  return a:entry.reifiedName
-    \ . ' : '
-    \ . a:entry.binding
-    \ . (a:entry.inScope ? '' : ' (not in scope)')
-    \ . "\n"
+  let l:name = a:entry.reifiedName . (a:entry.inScope ? '' : ' (not in scope)')
+  return s:signature(l:name, a:entry.binding)
 endfunction
 
 " ### Give
@@ -383,11 +374,23 @@ function s:handle_loading(status)
   execute l:current . 'wincmd w'
 endfunction
 
-" ## Utilities
+" ## Print
 
+" Escape a string for passing to the Agda executable.
 function s:escape(str)
   return escape(a:str, '\"')
 endfunction
+
+" Format a type signature.
+function s:signature(name, type)
+  return a:name
+    \ . "\n"
+    \ . '  : '
+    \ . join(split(a:type, '\n'), "\n    ")
+    \ . "\n"
+endfunction
+
+" ## Utilities
 
 " Both arguments must be dictionaries with `line` and `col` fields.
 " Return -1 if pos1 is before pos2.
