@@ -261,30 +261,42 @@ endfunction
 
 " Initialize script-local points list.
 function s:handle_points(points)
-  let s:points = []
+  " Save initial position.
+  let l:window = winnr()
+  let l:line = line('.')
+  let l:col = col('.')
 
-  " Only accept points with exactly one range.
+  " Go to beginning of code window.
+  execute s:code_window . 'wincmd w'
+  call cursor(1, 1)
+
+  let s:points = []
   for l:point in a:points
-    if len(l:point.range) == 1
-      call add(s:points,
-        \ { 'id': l:point.id
-        \ , 'range': s:handle_range(l:point.range[0])
-        \ })
+    let l:pat1 = '\m[[:space:]\n.;{}()@"]\zs?\ze[[:space:]\n.;{}()@]'
+    let l:pat2 = '\m{!\_.\{-}!}'
+    let l:pat3 = '\m{!\_.\{-}!\zs}'
+
+    let l:pos1 = searchpos(l:pat1, 'nWz')
+    let l:pos2 = searchpos(l:pat2, 'nWz')
+    let l:pos3 = searchpos(l:pat3, 'nWz')
+
+    let l:line1 = l:pos1[0]
+    let l:line2 = l:pos2[0]
+
+    if l:line1 > 0 && (l:line2 == 0 || s:compare(l:pos1, l:pos2) < 0)
+      let s:points += [{'id': l:point.id, 'start': l:pos1, 'end': l:pos1}]
+      call cursor(l:pos1)
+    elseif l:line2 > 0
+      let s:points += [{'id': l:point.id, 'start': l:pos2, 'end': l:pos3}]
+      call cursor(l:pos2)
+    else
+      break
     endif
   endfor
-endfunction
 
-" Convert from virtual range.
-function s:handle_range(range)
-  return map(a:range, 's:handle_position(v:val)')
-endfunction
-
-" Convert from virtual position.
-function s:handle_position(position)
-  return
-    \ { 'line': a:position.line
-    \ , 'col': byteidx(getline(a:position.line), a:position.col - 1) + 1
-    \ }
+  " Restore original position.
+  execute l:window . 'wincmd w'
+  call cursor(l:line, l:col)
 endfunction
 
 " ### Environment
@@ -314,7 +326,7 @@ endfunction
 function s:handle_give(result, id)
   for l:point in s:points
     if l:point.id == a:id
-      call s:replace(l:point.range, a:result)
+      call s:replace(s:code_window, l:point.start, l:point.end, a:result)
       return
     endif
   endfor
@@ -405,18 +417,20 @@ endfunction
 
 " ## Utilities
 
-" Both arguments must be dictionaries with `line` and `col` fields.
-" Return -1 if position1 is before position2.
-" Return 1 if position1 is after position2.
-" Return 0 if position1 equals position2.
-function s:compare(position1, position2)
-  if a:position1.line < a:position2.line
+" Return -1 if point1 is before point2.
+" Return 1 if point1 is after point2.
+" Return 0 if point1 equals point2.
+function s:compare(point1, point2)
+  let [l:line1, l:col1] = a:point1
+  let [l:line2, l:col2] = a:point2
+
+  if l:line1 < l:line2
     return -1
-  elseif a:position1.line > a:position2.line
+  elseif l:line1 > l:line2
     return 1
-  elseif a:position1.col < a:position2.col
+  elseif l:col1 < l:col2
     return -1
-  elseif a:position1.col > a:position2.col
+  elseif l:col1 > l:col2
     return 1
   else
     return 0
@@ -439,14 +453,12 @@ function s:lookup()
     return -1
   endif
 
-  let l:current =
-    \ { 'line': line('.')
-    \ , 'col': col('.')
-    \ }
+  let l:line = line('.')
+  let l:col = col('.')
 
   for l:point in s:points
-    if s:compare(l:current, l:point.range.start) >= 0
-      \ && s:compare(l:current, l:point.range.end) < 0
+    if s:compare([l:line, l:col], l:point.start) >= 0
+      \ && s:compare([l:line, l:col], l:point.end) <= 0
       return l:point.id
     endif
   endfor
@@ -455,56 +467,51 @@ function s:lookup()
   return -1
 endfunction
 
-" Replace text at the given point, preserving cursor position.
+" Replace text at the given location, preserving cursor position.
 " Assume `str` does not contain any newline characters.
-function s:replace(point, str)
+function s:replace(window, start, end, str)
   " Save window.
   let l:window = winnr()
-  execute s:code_window . 'wincmd w'
+  execute a:window . 'wincmd w'
 
   " Save cursor position.
   let l:line = line('.')
   let l:col = col('.')
-  let l:current =
-    \ { 'line': l:line
-    \ , 'col': l:col
-    \ }
 
   " Perform deletion.
-  call cursor(a:point.start.line, a:point.start.col)
-  if a:point.end.line == a:point.start.line
-    execute 'normal! ' . (a:point.end.col - a:point.start.col) . 'x'
+  call cursor(a:start)
+  if a:end[0] == a:start[0]
+    execute 'normal! ' . (a:end[1] - a:start[1] + 1) . 'x'
   else
     let l:command
-      \ = a:point.end.line > a:point.start.line + 1
-      \ ? (a:point.start.line + 1) . ',' . (a:point.end.line - 1) . 'd'
+      \ = a:end[0] > a:start[0] + 1
+      \ ? (a:start[0] + 1) . ',' . (a:end[0] - 1) . 'd'
       \ : ''
     execute 'normal! d$'
     execute l:command
-    call cursor(a:point.start.line + 1, 1)
-    execute 'normal! ' . (a:point.end.col - 1) . 'x'
-    call cursor(a:point.start.line, 1)
+    call cursor(a:start[0] + 1, 1)
+    execute 'normal! ' . a:end[1] . 'x'
+    call cursor(a:start[0], 1)
     execute 'normal! gJ'
   endif
 
   " Perform insertion.
-  call cursor(a:point.start.line, a:point.start.col - 1)
+  call cursor(a:start[0], a:start[1] - 1)
   execute 'normal! a' . a:str
 
   " Restore cursor position.
-  if s:compare(l:current, a:point.start) <= 0
+  if s:compare([l:line, l:col], a:start) <= 0
     call cursor(l:line, l:col)
-  elseif s:compare(l:current, a:point.end) < 0
-    call cursor(a:point.start.line, a:point.start.col)
-  elseif l:line == a:point.start.line && l:line == a:point.end.line
-    call cursor(a:point.start.line
-      \ , l:col - (a:point.end.col - a:point.start.col))
-  elseif l:line == a:point.end.line
-    call cursor(a:point.start.line, l:col - a:point.end.col + 1)
-  elseif a:point.end.line == a:point.start.line
+  elseif s:compare([l:line, l:col], a:end) <= 0
+    call cursor(a:start)
+  elseif l:line == a:start[0] && l:line == a:end[0]
+    call cursor(a:start[0], l:col - (a:end[1] - a:start[1] + 1))
+  elseif l:line == a:end[0]
+    call cursor(a:start[0], l:col - a:end[1])
+  elseif a:end[0] == a:start[0]
     call cursor(l:line, l:col)
   else
-    call cursor(l:line - (a:point.end.line - a:point.start.line - 1), l:col)
+    call cursor(l:line - (a:end[0] - a:start[0] - 1), l:col)
   endif
 
   " Restore window.
