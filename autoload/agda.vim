@@ -386,10 +386,7 @@ endfunction
 " ## Utilities
 
 function s:escape(str)
-  let l:str = a:str
-  let l:str = substitute(l:str, '\m\', '\\\\', 'g')
-  let l:str = substitute(l:str, '\m"', '\\"', 'g')
-  return l:str
+  return escape(a:str, '\"')
 endfunction
 
 " Both arguments must be dictionaries with `line` and `col` fields.
