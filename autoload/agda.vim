@@ -268,10 +268,23 @@ function s:handle_points(points)
     if len(l:point.range) == 1
       call add(s:points,
         \ { 'id': l:point.id
-        \ , 'range': l:point.range[0]
+        \ , 'range': s:handle_range(l:point.range[0])
         \ })
     endif
   endfor
+endfunction
+
+" Convert from virtual range.
+function s:handle_range(range)
+  return map(a:range, 's:handle_position(v:val)')
+endfunction
+
+" Convert from virtual position.
+function s:handle_position(position)
+  return
+    \ { 'line': a:position.line
+    \ , 'col': byteidx(getline(a:position.line), a:position.col - 1) + 1
+    \ }
 endfunction
 
 " ### Environment
@@ -393,17 +406,17 @@ endfunction
 " ## Utilities
 
 " Both arguments must be dictionaries with `line` and `col` fields.
-" Return -1 if pos1 is before pos2.
-" Return 1 if pos1 is after pos2.
-" Return 0 if pos1 equals pos2.
-function s:compare(pos1, pos2)
-  if a:pos1.line < a:pos2.line
+" Return -1 if position1 is before position2.
+" Return 1 if position1 is after position2.
+" Return 0 if position1 equals position2.
+function s:compare(position1, position2)
+  if a:position1.line < a:position2.line
     return -1
-  elseif a:pos1.line > a:pos2.line
+  elseif a:position1.line > a:position2.line
     return 1
-  elseif a:pos1.col < a:pos2.col
+  elseif a:position1.col < a:position2.col
     return -1
-  elseif a:pos1.col > a:pos2.col
+  elseif a:position1.col > a:position2.col
     return 1
   else
     return 0
@@ -428,7 +441,7 @@ function s:lookup()
 
   let l:current =
     \ { 'line': line('.')
-    \ , 'col': virtcol('.')
+    \ , 'col': col('.')
     \ }
 
   for l:point in s:points
@@ -460,7 +473,7 @@ function s:replace(point, str)
   " Perform deletion.
   call cursor(a:point.start.line, a:point.start.col)
   if a:point.end.line == a:point.start.line
-    execute 'normal! ' . (a:point.end.col - a:point.start.col + 1) . 'x'
+    execute 'normal! ' . (a:point.end.col - a:point.start.col) . 'x'
   else
     let l:command
       \ = a:point.end.line > a:point.start.line + 1
@@ -469,7 +482,7 @@ function s:replace(point, str)
     execute 'normal! d$'
     execute l:command
     call cursor(a:point.start.line + 1, 1)
-    execute 'normal! ' . a:point.end.col . 'x'
+    execute 'normal! ' . (a:point.end.col - 1) . 'x'
     call cursor(a:point.start.line, 1)
     execute 'normal! gJ'
   endif
@@ -481,13 +494,13 @@ function s:replace(point, str)
   " Restore cursor position.
   if s:compare(l:current, a:point.start) <= 0
     call cursor(l:line, l:col)
-  elseif s:compare(l:current, a:point.end) <= 0
+  elseif s:compare(l:current, a:point.end) < 0
     call cursor(a:point.start.line, a:point.start.col)
   elseif l:line == a:point.start.line && l:line == a:point.end.line
     call cursor(a:point.start.line
-      \ , l:col - (a:point.end.col - a:point.start.col + 1))
+      \ , l:col - (a:point.end.col - a:point.start.col))
   elseif l:line == a:point.end.line
-    call cursor(a:point.start.line, l:col - a:point.end.col)
+    call cursor(a:point.start.line, l:col - a:point.end.col + 1)
   elseif a:point.end.line == a:point.start.line
     call cursor(l:line, l:col)
   else
