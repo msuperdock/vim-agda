@@ -16,6 +16,11 @@ if !exists('g:agda_args')
   let g:agda_args = []
 endif
 
+" Whether to log output from the Agda executable to the messages buffer.
+if !exists('g:agda_debug')
+  let g:agda_debug = 0
+endif
+
 " ## Comments
 
 let &l:comments = 's1fl:{-,mb:-,ex:-},:--'

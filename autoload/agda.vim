@@ -107,6 +107,19 @@ function s:send(command)
     \ )
 endfunction
 
+" ### Debug
+
+" Toggle value of `agda_debug`.
+function agda#toggle_debug()
+  if g:agda_debug
+    echom "Agda debugging off."
+    let g:agda_debug = 0
+  else
+    echom "Agda debugging on."
+    let g:agda_debug = 1
+  endif
+endfunction
+
 " ## Handlers
 
 " ### Event
@@ -114,6 +127,12 @@ endfunction
 " Callback function for the Agda job.
 function s:handle_event(id, data, event)
   for l:line in a:data
+    if g:agda_debug
+      echom l:line
+      echo ''
+      redraw
+    endif
+
     call s:handle_line(l:line)
   endfor
 endfunction
@@ -252,7 +271,7 @@ function s:section(name, contents)
     \ . ' '
     \ . a:name
     \ . ' '
-    \ . repeat('─', 59 - len(a:name))
+    \ . repeat('─', 64 - len(a:name))
     \ . "\n"
     \ . a:contents
     \ . "\n"
