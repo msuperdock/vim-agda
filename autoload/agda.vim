@@ -14,6 +14,7 @@ function agda#load()
 
   " Check if Agda job is started successfully.
   if g:agda_job >= 0
+    redraw
     echom 'Loading Agda.'
   else
     echom 'Failed to load Agda.'
