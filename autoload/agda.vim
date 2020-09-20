@@ -4,13 +4,20 @@
 
 " Load current file with no command-line options.
 function agda#load()
-  echom 'Loading Agda.'
   update
 
   " Start Agda job if not already started.
-  if !exists('g:agda_job')
+  if !exists('g:agda_job') || g:agda_job < 0
     let g:agda_job = jobstart(['agda', '--interaction-json'] + g:agda_args
       \ , {'on_stdout': function('s:handle_event')})
+  endif
+
+  " Check if Agda job is started successfully.
+  if g:agda_job >= 0
+    echom 'Loading Agda.'
+  else
+    echom 'Failed to load Agda.'
+    return
   endif
 
   let s:code_file = expand('%:p')
@@ -92,19 +99,6 @@ function agda#unused()
   update
   call jobstart(['agda-unused', '--local', expand('%'), '--json']
     \ , {'on_stdout': function('s:handle_unused')})
-endfunction
-
-" Send command to the Agda job.
-function s:send(command)
-  call s:handle_loading(1)
-  call chansend(g:agda_job
-    \ , 'IOTCM'
-    \ . ' "' . s:code_file . '"'
-    \ . ' None'
-    \ . ' Direct'
-    \ . ' (' . a:command . ')'
-    \ . "\n"
-    \ )
 endfunction
 
 " ### Debug
@@ -541,6 +535,7 @@ function s:lookup()
     \ && exists('s:code_file')
     \ && exists('s:code_window')
     \ && exists('s:points')
+    \ && g:agda_job >= 0
 
   if !l:loaded
     echom 'Agda not loaded.'
@@ -562,6 +557,22 @@ function s:lookup()
 
   echom 'Cursor not on hole.'
   return -1
+endfunction
+
+" Go to next character; return 1 if successful, 0 if at end of file.
+function s:next()
+  let l:line = line('.')
+  let l:col = col('.')
+
+  if l:col < col('$') - 1
+    call cursor(l:line, l:col + 1)
+    return 1
+  elseif l:line < line('$')
+    call cursor(l:line + 1, 1)
+    return 1
+  endif
+
+  return 0
 endfunction
 
 " Replace text at the given location, preserving cursor position.
@@ -615,19 +626,16 @@ function s:replace(window, start, end, str)
   execute l:window . 'wincmd w'
 endfunction
 
-" Go to next character; return 1 if successful, 0 if at end of file.
-function s:next()
-  let l:line = line('.')
-  let l:col = col('.')
-
-  if l:col < col('$') - 1
-    call cursor(l:line, l:col + 1)
-    return 1
-  elseif l:line < line('$')
-    call cursor(l:line + 1, 1)
-    return 1
-  endif
-
-  return 0
+" Send command to the Agda job.
+function s:send(command)
+  call s:handle_loading(1)
+  call chansend(g:agda_job
+    \ , 'IOTCM'
+    \ . ' "' . s:code_file . '"'
+    \ . ' None'
+    \ . ' Direct'
+    \ . ' (' . a:command . ')'
+    \ . "\n"
+    \ )
 endfunction
 
