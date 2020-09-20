@@ -97,8 +97,14 @@ endfunction
 " Check for unused code in the current module.
 function agda#unused()
   update
-  call jobstart(['agda-unused', '--local', expand('%'), '--json']
-    \ , {'on_stdout': function('s:handle_unused')})
+  let l:agda_unused_job = jobstart
+    \ ( ['agda-unused', '--local', expand('%'), '--json']
+    \ , {'on_stdout': function('s:handle_unused')}
+    \ )
+
+  if l:agda_unused_job < 0
+    echom 'Failed to run agda-unused.'
+  endif
 endfunction
 
 " ### Debug
