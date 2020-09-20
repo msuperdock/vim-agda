@@ -1,6 +1,6 @@
 # vim-agda
 
-A neovim plugin for Agda 2.6.1:
+A neovim plugin for Agda 2.6.1 (and 2.6.1.1):
 
 - Asynchronous type-checking, using Agda's `--interaction-json` interface.
 - Simplified syntax highlighting, without relying on Agda's syntax data.
