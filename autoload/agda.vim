@@ -423,6 +423,7 @@ function s:handle_give(result, id)
   for l:point in s:points
     if l:point.id == a:id
       call s:replace(s:code_window, l:point.start, l:point.end, a:result)
+      update
       return
     endif
   endfor
