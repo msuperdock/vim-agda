@@ -82,7 +82,14 @@ function agda#refine()
     return
   endif
 
-  let l:input = s:escape(input('Refine: '))
+  let l:input = s:escape(input(
+    \ { 'prompt': 'Refine: '
+    \ , 'cancelreturn': '.'
+    \ }))
+
+  if l:input ==# '.'
+    return
+  endif
 
   call s:send('Cmd_refine_or_intro'
     \ . ' False'
