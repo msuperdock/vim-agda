@@ -352,7 +352,6 @@ function s:handle_points(points)
       \ && (l:pos4[0] == 0 || s:compare (l:pos3, l:pos4) < 0)
       \ && (l:pos5[0] == 0 || s:compare (l:pos3, l:pos5) < 0)
 
-      echom "test"
       call cursor(l:pos3)
       if search('\m"', 'Wz') <= 0 || s:next() == 0
         break
