@@ -21,6 +21,11 @@ if !exists('g:agda_debug')
   let g:agda_debug = 0
 endif
 
+" Whether to enable foldout in the agda buffer.
+if !exists('g:agda_foldout')
+  let g:agda_foldout = 0
+endif
+
 " ## Comments
 
 let &l:comments = 's1fl:{-,mb:-,ex:-},:--'

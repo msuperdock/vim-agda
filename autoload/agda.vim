@@ -273,7 +273,7 @@ function s:handle_goals_all(visible, invisible, warnings, errors)
     echom "All done."
     let g:agda_loading = 0
   else
-    call s:handle_output(join(l:types, ', '), join(l:outputs, ''))
+    call s:handle_output(join(l:types, ', '), join(l:outputs, ''), 1)
   endif
 endfunction
 
@@ -298,12 +298,9 @@ function s:handle_goal(goal, visible)
 endfunction
 
 function s:section(name, contents)
-  return repeat('─', 4)
-    \ . ' '
+  return '-- ## '
     \ . a:name
-    \ . ' '
-    \ . repeat('─', 64 - len(a:name))
-    \ . "\n"
+    \ . "\n\n"
     \ . a:contents
     \ . "\n"
 endfunction
@@ -434,7 +431,7 @@ function s:handle_environment(info)
     \ . "\n"
     \ . s:handle_entries(a:info.entries)
 
-  call s:handle_output('Environment', l:output)
+  call s:handle_output('Environment', l:output, 1)
 endfunction
 
 function s:handle_entries(entries)
@@ -443,7 +440,7 @@ function s:handle_entries(entries)
 endfunction
 
 function s:handle_entry(entry)
-  let l:name = a:entry.reifiedName . (a:entry.inScope ? '' : ' (not in scope)')
+  let l:name = a:entry.reifiedName . (a:entry.inScope ? '' : ' (out of scope)')
   return s:signature(l:name, a:entry.binding)
 endfunction
 
@@ -468,7 +465,10 @@ endfunction
 " ### Output
 
 " Print the given output in the Agda buffer.
-function s:handle_output(type, output)
+" The optional argument indicates whether to use the Agda filetype.
+function s:handle_output(type, output, ...)
+  let l:syntax = a:0 >= 1 && a:1
+
   " Clear echo area.
   echo ''
 
@@ -491,12 +491,21 @@ function s:handle_output(type, output)
   " Change buffer name.
   execute 'file Agda (' . a:type . ')'
 
+  " Set filetype.
+  let &l:filetype = l:syntax ? 'agda' : ''
+
   " Write output.
   let &l:readonly = 0
   silent %delete _
   silent put =a:output
   execute 'normal! ggdd'
   let &l:readonly = 1
+  silent! %foldopen!
+
+  " Load foldout.
+  if g:agda_foldout > 0
+    call foldout#enable()
+  endif
 
   " Restore original window.
   execute l:current . 'wincmd w'

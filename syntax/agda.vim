@@ -81,6 +81,7 @@ syntax match agdaTo 'to[[:space:]\n.;{}()@"]\@=' contained
 syntax match agdaComment '--.*'
 syntax region agdaComment start='{-' end='-}' contains=agdaBlockComment
 syntax region agdaPragma start='{-#' end='#-}'
+syntax match agdaLine '^─\+$'
 
 " ## Literals
 
@@ -141,6 +142,8 @@ syntax region agdaString start='"' skip='\\"' end='"\|$'
 " ## Holes
 
 syntax match agdaHole '?[[:space:]\n.;{}()@"]\@='
+syntax match agdaHoleIndexed '?\d\+[[:space:]\n.;{}()@"]\@='
+syntax match agdaHoleIndexed '_\d\+[[:space:]\n.;{}()@"]\@='
 syntax region agdaHole start='{!' end='!}\|$'
 
 " ## Highlights
@@ -151,6 +154,7 @@ highlight default link agdaComment Comment
 highlight default link agdaEllipses agdaOperator
 highlight default link agdaHole WarningMsg
 highlight default link agdaKeyword Statement
+highlight default link agdaLine Comment
 highlight default link agdaNumber Number
 highlight default link agdaOperator Operator
 highlight default link agdaPragma SpecialComment
