@@ -292,7 +292,7 @@ function s:handle_goal(goal, visible)
       \ . "\n"
 
   else
-    return '(unrecognized goal)'
+    echoerr 'Unrecognized goal.'
 
   endif
 endfunction
