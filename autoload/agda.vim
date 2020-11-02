@@ -6,20 +6,23 @@
 function agda#load()
   update
 
-  " Start Agda job if not already started.
+  if exists('g:agda_loading') && g:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return
+  endif
+
   if !exists('g:agda_job') || g:agda_job < 0
     let g:agda_job = jobstart(['agda', '--interaction-json'] + g:agda_args
       \ , {'on_stdout': function('s:handle_event')})
   endif
 
-  " Check if Agda job is started successfully.
-  if g:agda_job >= 0
-    redraw
-    echom 'Loading Agda.'
-  else
+  if g:agda_job < 0
     echom 'Failed to load Agda.'
     return
   endif
+
+  redraw
+  echom 'Loading Agda.'
 
   let s:code_file = expand('%:p')
   let s:code_window = winnr()
@@ -31,36 +34,21 @@ function agda#load()
     \ )
 endfunction
 
-" ### Environment
-
-" Display context for hole at cursor.
-function agda#environment()
-  let l:id = s:lookup()
-
-  if l:id < 0
-    return
-  endif
-
-  call s:send('Cmd_goal_type_context'
-    \ . ' Normalised'
-    \ . ' ' . l:id
-    \ . ' noRange'
-    \ . ' ""'
-    \ )
-endfunction
-
 " ### Give
 
 " Give expression for hole at cursor.
 function agda#give()
-  let l:id = s:lookup()
+  if g:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return
+  endif
 
+  let l:id = s:lookup()
   if l:id < 0
     return
   endif
 
   let l:input = s:escape(input('Give: '))
-
   if l:input ==# ''
     return
   endif
@@ -77,8 +65,12 @@ endfunction
 
 " Refine expression for hole at cursor.
 function agda#refine()
-  let l:id = s:lookup()
+  if g:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return
+  endif
 
+  let l:id = s:lookup()
   if l:id < 0
     return
   endif
@@ -87,7 +79,6 @@ function agda#refine()
     \ { 'prompt': 'Refine: '
     \ , 'cancelreturn': '.'
     \ }))
-
   if l:input ==# '.'
     return
   endif
@@ -100,11 +91,39 @@ function agda#refine()
     \ )
 endfunction
 
+" ### Environment
+
+" Display context for hole at cursor.
+function agda#environment()
+  if g:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return
+  endif
+
+  let l:id = s:lookup()
+  if l:id < 0
+    return
+  endif
+
+  call s:send('Cmd_goal_type_context'
+    \ . ' Normalised'
+    \ . ' ' . l:id
+    \ . ' noRange'
+    \ . ' ""'
+    \ )
+endfunction
+
 " ### Unused
 
 " Check for unused code in the current module.
 function agda#unused()
   update
+
+  if exists('g:agda_loading') && g:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return
+  endif
+
   let l:agda_unused_job = jobstart
     \ ( ['agda-unused', '--local', expand('%'), '--json']
     \ , {'on_stdout': function('s:handle_unused')}
@@ -112,6 +131,8 @@ function agda#unused()
 
   if l:agda_unused_job < 0
     echom 'Failed to run agda-unused.'
+  else
+    call s:handle_loading(1)
   endif
 endfunction
 
@@ -163,6 +184,7 @@ function s:handle_unused(id, data, event)
   if l:json.type ==# 'none'
     silent! bdelete Agda
     echom trim(l:json.message)
+    let g:agda_loading = 0
   elseif l:json.type ==# 'unused'
     call s:handle_output('Unused', l:json.message)
   elseif l:json.type ==# 'error'
@@ -249,6 +271,7 @@ function s:handle_goals_all(visible, invisible, warnings, errors)
   if l:types == []
     silent! bdelete Agda
     echom "All done."
+    let g:agda_loading = 0
   else
     call s:handle_output(join(l:types, ', '), join(l:outputs, ''))
   endif
@@ -449,6 +472,9 @@ function s:handle_output(type, output)
   " Clear echo area.
   echo ''
 
+  " Indicate that Agda is no longer loading.
+  let g:agda_loading = 0
+
   " Save initial window.
   let l:current = winnr()
 
@@ -479,7 +505,10 @@ endfunction
 " Display loading status in Agda buffer name.
 " A status of 1 indicates loading.
 " A status of 0 indicates not loading.
-function s:handle_loading(status)
+function s:handle_loading(loading)
+  " Update `g:agda_loading` variable.
+  let g:agda_loading = a:loading
+
   " Save initial window.
   let l:current = winnr()
 
@@ -493,9 +522,9 @@ function s:handle_loading(status)
   execute l:agda . 'wincmd w'
   let l:file = expand('%')
   let l:match = match(l:file, '\m \[loading\]$')
-  if a:status == 0 && l:match >= 0 
+  if a:loading == 0 && l:match >= 0 
     execute 'file ' . l:file[: l:match - 1]
-  elseif a:status > 0 && l:match < 0
+  elseif a:loading > 0 && l:match < 0
     execute 'file ' . l:file . ' [loading]'
   endif
 
