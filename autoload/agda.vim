@@ -285,15 +285,10 @@ function s:handle_goal(goal, visible)
   if a:goal.kind ==# 'OfType'
     let l:name = (a:visible ? '?' : '') . a:goal.constraintObj
     return s:signature(l:name, a:goal.type)
-
   elseif a:goal.kind ==# 'JustSort'
-    return 'Sort '
-      \ . a:goal.constraintObj
-      \ . "\n"
-
+    return s:signature(a:goal.constraintObj, 'Sort')
   else
     echoerr 'Unrecognized goal.'
-
   endif
 endfunction
 
