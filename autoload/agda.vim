@@ -4,7 +4,7 @@
 
 " Load current file with no command-line options.
 function agda#load()
-  update
+  silent update
 
   if exists('g:agda_loading') && g:agda_loading > 0
     echom 'Loading Agda (command ignored).'
@@ -117,7 +117,7 @@ endfunction
 
 " Check for unused code in the current module.
 function agda#unused()
-  update
+  silent update
 
   if exists('g:agda_loading') && g:agda_loading > 0
     echom 'Loading Agda (command ignored).'
@@ -445,7 +445,7 @@ function s:handle_give(result, id)
   for l:point in s:points
     if l:point.id == a:id
       call s:replace(s:code_window, l:point.start, l:point.end, a:result)
-      update
+      silent update
       return
     endif
   endfor
