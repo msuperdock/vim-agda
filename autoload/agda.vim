@@ -34,6 +34,46 @@ function agda#load()
     \ )
 endfunction
 
+" ### Next
+
+" Move cursor to next hole.
+function agda#next()
+  if s:loaded() < 0
+    return
+  endif
+
+  let l:pos = [line('.'), col('.')]
+  for l:point in s:points
+    if s:compare(l:point.start, l:pos) > 0
+      call cursor(l:point.start)
+      echo ''
+      return
+    endif
+  endfor
+
+  echom 'No hole found.'
+endfunction
+
+" ### Previous
+
+" Move cursor to previous hole.
+function agda#previous()
+  if s:loaded() < 0
+    return
+  endif
+
+  let l:pos = [line('.'), col('.')]
+  for l:point in reverse(s:points)
+    if s:compare(l:point.end, l:pos) < 0
+      call cursor(l:point.end)
+      echo ''
+      return
+    endif
+  endfor
+
+  echom 'No hole found.'
+endfunction
+
 " ### Give
 
 " Give expression for hole at cursor.
@@ -340,10 +380,10 @@ function s:handle_points(points)
 
     " If single-line comment is found first:
     if l:pos1[0] > 0
-      \ && (l:pos2[0] == 0 || s:compare (l:pos1, l:pos2) < 0)
-      \ && (l:pos3[0] == 0 || s:compare (l:pos1, l:pos3) < 0)
-      \ && (l:pos4[0] == 0 || s:compare (l:pos1, l:pos4) < 0)
-      \ && (l:pos5[0] == 0 || s:compare (l:pos1, l:pos5) < 0)
+      \ && (l:pos2[0] == 0 || s:compare(l:pos1, l:pos2) < 0)
+      \ && (l:pos3[0] == 0 || s:compare(l:pos1, l:pos3) < 0)
+      \ && (l:pos4[0] == 0 || s:compare(l:pos1, l:pos4) < 0)
+      \ && (l:pos5[0] == 0 || s:compare(l:pos1, l:pos5) < 0)
       
       if l:pos1[0] < line('$')
         call cursor(l:pos1[0] + 1, 1)
@@ -353,9 +393,9 @@ function s:handle_points(points)
 
     " If block comment is found first:
     elseif l:pos2[0] > 0
-      \ && (l:pos3[0] == 0 || s:compare (l:pos2, l:pos3) < 0)
-      \ && (l:pos4[0] == 0 || s:compare (l:pos2, l:pos4) < 0)
-      \ && (l:pos5[0] == 0 || s:compare (l:pos2, l:pos5) < 0)
+      \ && (l:pos3[0] == 0 || s:compare(l:pos2, l:pos3) < 0)
+      \ && (l:pos4[0] == 0 || s:compare(l:pos2, l:pos4) < 0)
+      \ && (l:pos5[0] == 0 || s:compare(l:pos2, l:pos5) < 0)
 
       call cursor(l:pos2)
       if searchpair('\m{-', '', '\m-}', 'Wz') <= 0
@@ -364,8 +404,8 @@ function s:handle_points(points)
 
     " If string is found first:
     elseif l:pos3[0] > 0
-      \ && (l:pos4[0] == 0 || s:compare (l:pos3, l:pos4) < 0)
-      \ && (l:pos5[0] == 0 || s:compare (l:pos3, l:pos5) < 0)
+      \ && (l:pos4[0] == 0 || s:compare(l:pos3, l:pos4) < 0)
+      \ && (l:pos5[0] == 0 || s:compare(l:pos3, l:pos5) < 0)
 
       call cursor(l:pos3)
       if search('\m"', 'Wz') <= 0 || s:next() == 0
@@ -374,7 +414,7 @@ function s:handle_points(points)
 
     " If hole is found first:
     elseif l:pos4[0] > 0
-      \ && (l:pos5[0] == 0 || s:compare (l:pos4, l:pos5) < 0)
+      \ && (l:pos5[0] == 0 || s:compare(l:pos4, l:pos5) < 0)
 
       let s:points += [
         \ { 'id': a:points[l:index].id
@@ -417,6 +457,18 @@ function s:handle_points(points)
   call cursor(l:line, l:col)
 endfunction
 
+" ### Give
+
+function s:handle_give(result, id)
+  for l:point in s:points
+    if l:point.id == a:id
+      call s:replace(s:code_window, l:point.start, l:point.end, a:result)
+      silent update
+      return
+    endif
+  endfor
+endfunction
+
 " ### Environment
 
 function s:handle_environment(info)
@@ -437,18 +489,6 @@ endfunction
 function s:handle_entry(entry)
   let l:name = a:entry.reifiedName . (a:entry.inScope ? '' : ' (out of scope)')
   return s:signature(l:name, a:entry.binding)
-endfunction
-
-" ### Give
-
-function s:handle_give(result, id)
-  for l:point in s:points
-    if l:point.id == a:id
-      call s:replace(s:code_window, l:point.start, l:point.end, a:result)
-      silent update
-      return
-    endif
-  endfor
 endfunction
 
 " ### Message
@@ -574,8 +614,8 @@ function s:compare(point1, point2)
   endif
 endfunction
 
-" Get id of interaction point at cursor, or return -1 on failure.
-function s:lookup()
+" Check whether Agda is loaded on the current file.
+function s:loaded()
   let l:loaded
     \ = exists('g:agda_job')
     \ && exists('s:code_file')
@@ -588,6 +628,13 @@ function s:lookup()
     return -1
   elseif expand('%:p') !=# s:code_file
     echom 'Agda loaded on different file.'
+    return -1
+  endif
+endfunction
+
+" Get id of interaction point at cursor, or return -1 on failure.
+function s:lookup()
+  if s:loaded() < 0
     return -1
   endif
 

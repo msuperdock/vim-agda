@@ -17,14 +17,16 @@ sacrificing the ability to quickly open and view syntax-highlighted Agda code.
 
 ## Functions
 
-Only a few functions are currently supported:
+The following functions are currently supported:
 
 | function | description |
 | --- | --- |
 | `agda#load()` | Load or reload agda. |
-| `agda#environment()` | Display environment for hole at cursor. |
+| `agda#next()` | Move cursor to next hole. |
+| `agda#previous()` | Move cursor to previous hole. |
 | `agda#give()` | Give expression for hole at cursor. |
 | `agda#refine()` | Refine expression for hole at cursor. |
+| `agda#environment()` | Display environment for hole at cursor. |
 | `agda#unused()` | Check the current file for unused code. |
 
 The `agda#unused()` function requires the `agda-unused` executable to be
