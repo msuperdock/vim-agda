@@ -89,6 +89,8 @@ function agda#give()
 
   let l:input = s:escape(input('Give: '))
   if l:input ==# ''
+    redraw
+    echom 'No expression given.'
     return
   endif
 
