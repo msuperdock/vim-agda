@@ -6,7 +6,7 @@
 function agda#load()
   silent update
 
-  if exists('g:agda_loading') && g:agda_loading > 0
+  if exists('s:agda_loading') && s:agda_loading > 0
     echom 'Loading Agda (command ignored).'
     return
   endif
@@ -38,7 +38,7 @@ endfunction
 
 " Move cursor to next hole.
 function agda#next()
-  if s:loaded() < 0
+  if s:status() < 0
     return
   endif
 
@@ -58,7 +58,7 @@ endfunction
 
 " Move cursor to previous hole.
 function agda#previous()
-  if s:loaded() < 0
+  if s:status() < 0
     return
   endif
 
@@ -78,8 +78,7 @@ endfunction
 
 " Give expression for hole at cursor.
 function agda#give()
-  if g:agda_loading > 0
-    echom 'Loading Agda (command ignored).'
+  if s:status(1) < 0
     return
   endif
 
@@ -105,8 +104,7 @@ endfunction
 
 " Refine expression for hole at cursor.
 function agda#refine()
-  if g:agda_loading > 0
-    echom 'Loading Agda (command ignored).'
+  if s:status(1) < 0
     return
   endif
 
@@ -131,12 +129,11 @@ function agda#refine()
     \ )
 endfunction
 
-" ### Environment
+" ### Context
 
 " Display context for hole at cursor.
-function agda#environment()
-  if g:agda_loading > 0
-    echom 'Loading Agda (command ignored).'
+function agda#context()
+  if s:status(1) < 0
     return
   endif
 
@@ -159,7 +156,7 @@ endfunction
 function agda#unused()
   silent update
 
-  if exists('g:agda_loading') && g:agda_loading > 0
+  if exists('s:agda_loading') && s:agda_loading > 0
     echom 'Loading Agda (command ignored).'
     return
   endif
@@ -224,7 +221,7 @@ function s:handle_unused(id, data, event)
   if l:json.type ==# 'none'
     silent! bdelete Agda
     echom trim(l:json.message)
-    let g:agda_loading = 0
+    let s:agda_loading = 0
   elseif l:json.type ==# 'unused'
     call s:handle_output('Unused', l:json.message)
   elseif l:json.type ==# 'error'
@@ -255,12 +252,7 @@ function s:handle_line(line)
 
   " Handle goals.
   if l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'AllGoalsWarnings'
-    call s:handle_goals_all
-      \ ( l:json.info.visibleGoals
-      \ , l:json.info.invisibleGoals
-      \ , l:json.info.warnings
-      \ , l:json.info.errors
-      \ )
+    call s:handle_goals_all(l:json.info)
 
   " Handle errors.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'Error'
@@ -268,7 +260,7 @@ function s:handle_line(line)
 
   " Handle context.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'GoalSpecific'
-    call s:handle_environment(l:json.info.goalInfo)
+    call s:handle_context(l:json.info.goalInfo)
 
   " Handle introduction not found error.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'IntroNotFound'
@@ -292,33 +284,46 @@ endfunction
 
 " ### Goals
 
-function s:handle_goals_all(visible, invisible, warnings, errors)
-  let l:types
-    \ = (a:visible == [] && a:invisible == [] ? [] : ['Goals'])
-    \ + (a:warnings == '' ? [] : ['Warnings'])
-    \ + (a:errors == '' ? [] : ['Errors'])
+function s:handle_goals_all(info)
+  let l:outputs = []
 
-  let l:outputs
-    \ = (a:visible == []
-    \   ? [] : [s:section('Goals', s:handle_goals(a:visible, 1))])
-    \ + (a:invisible == []
-    \   ? [] : [s:section('Goals (implicit)', s:handle_goals(a:invisible, 0))])
-    \ + (a:warnings == ''
-    \   ? [] : [s:section('Warnings', a:warnings)])
-    \ + (a:errors == ''
-    \   ? [] : [s:section('Errors', a:errors)])
+  if a:info.visibleGoals != [] || a:info.invisibleGoals != []
+    let l:output
+      \ = s:handle_goals(a:info.visibleGoals, 1)
+      \ . s:handle_goals(a:info.invisibleGoals, 0)
+    call add(l:outputs,
+      \ { 'name': 'Goals'
+      \ , 'content': l:output
+      \ })
+  endif
 
-  if l:types == []
+  if a:info.warnings !=# ''
+    call add(l:outputs,
+      \ { 'name': 'Warnings'
+      \ , 'content': a:info.warnings
+      \ })
+  endif
+
+  if a:info.errors !=# ''
+    call add(l:outputs,
+      \ { 'name': 'Errors'
+      \ , 'content': a:info.errors
+      \ })
+  endif
+
+  if l:outputs == []
     silent! bdelete Agda
     echom "All done."
-    let g:agda_loading = 0
+    let s:agda_loading = 0
   else
-    call s:handle_output(join(l:types, ', '), join(l:outputs, ''), 1)
+    call s:handle_outputs(l:outputs, 1)
   endif
 endfunction
 
 function s:handle_goals(goals, visible)
-  return join(map(a:goals, 's:handle_goal(v:val, a:visible)'), '')
+  let l:goals = map(copy(a:goals),
+    \ {_, val -> s:handle_goal(val, a:visible)})
+  return join(l:goals, '')
 endfunction
 
 function s:handle_goal(goal, visible)
@@ -330,14 +335,6 @@ function s:handle_goal(goal, visible)
   else
     echoerr 'Unrecognized goal.'
   endif
-endfunction
-
-function s:section(name, contents)
-  return '-- ## '
-    \ . a:name
-    \ . "\n\n"
-    \ . a:contents
-    \ . "\n"
 endfunction
 
 " ### Points
@@ -469,21 +466,28 @@ function s:handle_give(result, id)
   endfor
 endfunction
 
-" ### Environment
+" ### Context
 
-function s:handle_environment(info)
-  let l:output
-    \ = s:signature('Goal', a:info.type)
-    \ . repeat('─', 65)
-    \ . "\n"
-    \ . s:handle_entries(a:info.entries)
+function s:handle_context(info)
+  let l:outputs = []
 
-  call s:handle_output('Environment', l:output, 1)
+  call add(l:outputs,
+    \ { 'name': 'Goal'
+    \ , 'content': s:signature('Goal', a:info.type)
+    \ })
+
+  call add(l:outputs,
+    \ { 'name': 'Context'
+    \ , 'content': s:handle_entries(a:info.entries)
+    \ })
+
+  call s:handle_outputs(l:outputs, 1)
 endfunction
 
 function s:handle_entries(entries)
-  return join(map(a:entries, 's:handle_entry(v:val)'), '')
-    \ . "\n"
+  let l:entries = map(a:entries,
+    \ {_, val -> s:handle_entry(val)})
+  return join(l:entries, '')
 endfunction
 
 function s:handle_entry(entry)
@@ -501,14 +505,14 @@ endfunction
 
 " Print the given output in the Agda buffer.
 " The optional argument indicates whether to use the Agda filetype.
-function s:handle_output(type, output, ...)
+function s:handle_output(name, content, ...)
   let l:syntax = a:0 >= 1 && a:1
 
   " Clear echo area.
   echo ''
 
   " Indicate that Agda is no longer loading.
-  let g:agda_loading = 0
+  let s:agda_loading = 0
 
   " Save initial window.
   let l:current = winnr()
@@ -524,7 +528,7 @@ function s:handle_output(type, output, ...)
   endif
 
   " Change buffer name.
-  execute 'file Agda (' . a:type . ')'
+  execute 'file Agda (' . a:name . ')'
 
   " Set filetype.
   let &l:filetype = l:syntax ? 'agda' : ''
@@ -532,7 +536,7 @@ function s:handle_output(type, output, ...)
   " Write output.
   let &l:readonly = 0
   silent %delete _
-  silent put =a:output
+  silent put =a:content
   execute 'normal! ggdd'
   let &l:readonly = 1
   silent! %foldopen!
@@ -546,12 +550,27 @@ function s:handle_output(type, output, ...)
   execute l:current . 'wincmd w'
 endfunction
 
+" Print the given outputs in the Agda buffer, under separate headings.
+" The input should be a list of objects with `name` and `content` fields.
+" The optional argument indicates whether to use the Agda filetype.
+function s:handle_outputs(outputs, ...)
+  let l:syntax = a:0 >= 1 && a:1
+
+  let l:names = map(copy(a:outputs),
+    \ {_, val -> val['name']})
+  let l:contents = map(copy(a:outputs),
+    \ {_, val -> s:section(val['name'], val['content'])})
+  call s:handle_output
+    \ ( join(l:names, ', ')
+    \ , join(l:contents, '')
+    \ , l:syntax
+    \ )
+endfunction
+
 " Display loading status in Agda buffer name.
-" A status of 1 indicates loading.
-" A status of 0 indicates not loading.
 function s:handle_loading(loading)
-  " Update `g:agda_loading` variable.
-  let g:agda_loading = a:loading
+  " Update `s:agda_loading` variable.
+  let s:agda_loading = a:loading
 
   " Save initial window.
   let l:current = winnr()
@@ -581,6 +600,15 @@ endfunction
 " Escape a string for passing to the Agda executable.
 function s:escape(str)
   return escape(a:str, '\"')
+endfunction
+
+" Format a section with heading & content.
+function s:section(name, content)
+  return '-- ## '
+    \ . a:name
+    \ . "\n\n"
+    \ . a:content
+    \ . "\n"
 endfunction
 
 " Format a type signature.
@@ -614,33 +642,10 @@ function s:compare(point1, point2)
   endif
 endfunction
 
-" Check whether Agda is loaded on the current file.
-function s:loaded()
-  let l:loaded
-    \ = exists('g:agda_job')
-    \ && exists('s:code_file')
-    \ && exists('s:code_window')
-    \ && exists('s:points')
-    \ && g:agda_job >= 0
-
-  if !l:loaded
-    echom 'Agda not loaded.'
-    return -1
-  elseif expand('%:p') !=# s:code_file
-    echom 'Agda loaded on different file.'
-    return -1
-  endif
-endfunction
-
 " Get id of interaction point at cursor, or return -1 on failure.
 function s:lookup()
-  if s:loaded() < 0
-    return -1
-  endif
-
   let l:line = line('.')
   let l:col = col('.')
-
   for l:point in s:points
     if s:compare([l:line, l:col], l:point.start) >= 0
       \ && s:compare([l:line, l:col], l:point.end) <= 0
@@ -730,5 +735,30 @@ function s:send(command)
     \ . ' (' . a:command . ')'
     \ . "\n"
     \ )
+endfunction
+
+" Check whether Agda is loaded on the current file.
+" The optional argument indicates whether to also check if Agda is loading.
+function s:status(...)
+  let l:check_loading = a:0 >= 1 && a:1
+
+  let l:loaded
+    \ = exists('g:agda_job')
+    \ && exists('s:agda_loading')
+    \ && exists('s:code_file')
+    \ && exists('s:code_window')
+    \ && exists('s:points')
+    \ && g:agda_job >= 0
+
+  if !l:loaded
+    echom 'Agda not loaded.'
+    return -1
+  elseif expand('%:p') !=# s:code_file
+    echom 'Agda loaded on different file.'
+    return -1
+  elseif l:check_loading && s:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return -1
+  endif
 endfunction
 
