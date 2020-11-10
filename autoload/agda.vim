@@ -538,9 +538,6 @@ function s:handle_output(name, content, ...)
   " Change buffer name.
   execute 'file Agda (' . a:name . ')'
 
-  " Set filetype.
-  let &l:filetype = l:syntax ? 'agda' : ''
-
   " Write output.
   let &l:readonly = 0
   silent %delete _
@@ -551,7 +548,9 @@ function s:handle_output(name, content, ...)
 
   " Load foldout.
   if g:agda_foldout > 0
+    let &l:filetype = l:syntax ? 'agda' : ''
     let b:foldout_heading_comment = 1
+    let b:foldout_heading_ignore = '\(Errors\|Warnings\)'
     let b:foldout_heading_string = '-- %s'
     call foldout#enable()
   endif
