@@ -551,6 +551,8 @@ function s:handle_output(name, content, ...)
 
   " Load foldout.
   if g:agda_foldout > 0
+    let b:foldout_heading_comment = 1
+    let b:foldout_heading_string = '-- %s'
     call foldout#enable()
   endif
 
