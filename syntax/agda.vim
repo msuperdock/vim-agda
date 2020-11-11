@@ -142,9 +142,10 @@ syntax region agdaString start='"' skip='\\"' end='"\|$'
 " ## Holes
 
 syntax match agdaHole '?\($\|[[:space:].;{}()@"]\)\@='
+syntax region agdaHole start='{!' end='!}' contains=agdaHole
+
 syntax match agdaHoleIndexed '?\d\+\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaHoleIndexed '_\d\+\($\|[[:space:].;{}()@"]\)\@='
-syntax region agdaHole start='{!' end='!}\|$'
 
 " ## Highlights
 
