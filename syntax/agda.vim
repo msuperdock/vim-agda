@@ -2,17 +2,17 @@
 
 " Match identifiers not starting with capital letter.
 syntax match agdaIdentifier
-  \ '[^[:space:].;{}()@"]\+[[:space:]\n;{}()@"]\@='
+  \ '[^[:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@='
   \ contains=agdaMixfixUnderscore
 
 " Match identifiers not containing a letter.
 syntax match agdaOperator
-  \ '[^[:alpha:][:space:].;{}()@"]\+[[:space:]\n;{}()@"]\@='
+  \ '[^[:alpha:][:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@='
   \ contains=agdaMixfixUnderscore
 
 " Match identifiers starting with capital letter.
 syntax match agdaType
-  \ '[_¬]\?[A-Z][^[:space:].;{}()@"]*[[:space:]\n;{}()@"]\@='
+  \ '[_¬]\?[A-Z][^[:space:].;{}()@"]*\($\|[[:space:];{}()@"]\)\@='
   \ nextgroup=agdaTypeDot
 
 " Match identifiers followed by a dot.
@@ -22,59 +22,60 @@ syntax match agdaType
 
 syntax match agdaAs '@'
 syntax match agdaDot '\.' contained
-syntax match agdaEllipses '\.\.\.[[:space:]\n;{}()@"]\@='
+syntax match agdaEllipses '\.\.\.\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaUnderscore '_' contained
 
 " ## Keywords
 
-syntax match agdaKeyword 'abstract[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'constructor[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'data[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'do[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'eta-equality[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'field[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'forall[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'hiding[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'import[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'in[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'inductive[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'infix[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'infixl[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'infixr[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'instance[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'let[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'macro[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'module[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'mutual[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'no-eta-equality[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'open[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'overlap[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'pattern[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'postulate[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'primitive[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'private[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'public[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'quote[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'quoteContext[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'quoteGoal[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'quoteTerm[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'record[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'rewrite[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'syntax[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'tactic[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'unquote[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'unquoteDecl[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'unquoteDef[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'using[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'variable[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'where[[:space:]\n.;{}()@"]\@='
-syntax match agdaKeyword 'with[[:space:]\n.;{}()@"]\@='
+syntax match agdaKeyword 'abstract\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'constructor\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'data\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'do\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'eta-equality\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'field\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'forall\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'hiding\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'import\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'in\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'inductive\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'infix\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'infixl\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'infixr\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'instance\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'let\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'macro\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'module\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'mutual\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'no-eta-equality\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'open\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'overlap\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'pattern\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'postulate\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'primitive\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'private\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'public\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'quote\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'quoteContext\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'quoteGoal\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'quoteTerm\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'record\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'rewrite\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'syntax\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'tactic\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'unquote\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'unquoteDecl\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'unquoteDef\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'using\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'variable\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'where\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaKeyword 'with\($\|[[:space:].;{}()@"]\)\@='
 
-syntax match agdaKeyword 'renaming[[:space:]\n.;{}()@"]\@=' skipnl skipwhite
+syntax match agdaKeyword 'renaming\($\|[[:space:].;{}()@"]\)\@='
+  \ skipnl skipwhite
   \ nextgroup=agdaRenaming
 syntax region agdaRenaming start='(' end=')' contained
   \ contains=agdaIdentifier,agdaOperator,agdaTo,agdaType
-syntax match agdaTo 'to[[:space:]\n.;{}()@"]\@=' contained
+syntax match agdaTo 'to\($\|[[:space:].;{}()@"]\)\@=' contained
 
 " ## Comments
 
@@ -84,8 +85,8 @@ syntax region agdaPragma start='{-#' end='#-}'
 
 " ## Literals
 
-syntax match agdaNumber '-\?[0-9]\+[[:space:]\n;{}()@"]\@='
-syntax match agdaNumber '-\?0x[0-9A-Fa-f]\+[[:space:]\n;{}()@"]\@='
+syntax match agdaNumber '-\?[0-9]\+\($\|[[:space:];{}()@"]\)\@='
+syntax match agdaNumber '-\?0x[0-9A-Fa-f]\+\($\|[[:space:];{}()@"]\)\@='
 syntax match agdaNumber '-\?[0-9]\+\.[0-9]\+\([Ee]\([+-]\)\?[0-9]\+\)\?'
 syntax match agdaNumber '-\?[0-9]\+[Ee]\([+-]\)\?[0-9]\+'
 
@@ -140,9 +141,9 @@ syntax region agdaString start='"' skip='\\"' end='"\|$'
 
 " ## Holes
 
-syntax match agdaHole '?[[:space:]\n.;{}()@"]\@='
-syntax match agdaHoleIndexed '?\d\+[[:space:]\n.;{}()@"]\@='
-syntax match agdaHoleIndexed '_\d\+[[:space:]\n.;{}()@"]\@='
+syntax match agdaHole '?\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaHoleIndexed '?\d\+\($\|[[:space:].;{}()@"]\)\@='
+syntax match agdaHoleIndexed '_\d\+\($\|[[:space:].;{}()@"]\)\@='
 syntax region agdaHole start='{!' end='!}\|$'
 
 " ## Highlights
