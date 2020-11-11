@@ -6,6 +6,11 @@
 function agda#load()
   silent update
 
+  augroup agda
+    autocmd! * <buffer>
+    autocmd BufUnload <buffer> silent! bunload Agda
+  augroup end
+
   if exists('s:agda_loading') && s:agda_loading > 0
     echom 'Loading Agda (command ignored).'
     return
@@ -226,9 +231,9 @@ function s:handle_unused(id, data, event)
 
   " Handle output.
   if l:json.type ==# 'none'
-    silent! bdelete Agda
-    echom trim(l:json.message)
     let s:agda_loading = 0
+    silent! bunload Agda
+    echom trim(l:json.message)
   elseif l:json.type ==# 'unused'
     call s:handle_output('Unused', l:json.message)
   elseif l:json.type ==# 'error'
@@ -567,7 +572,7 @@ function s:handle_outputs(outputs, ...)
 
   if a:outputs == []
     let s:agda_loading = 0
-    silent! bdelete Agda
+    silent! bunload Agda
     return
   endif
 
