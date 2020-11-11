@@ -13,12 +13,10 @@ syntax match agdaOperator
 " Match identifiers starting with capital letter.
 syntax match agdaType
   \ '[_¬]\?[A-Z][^[:space:].;{}()@"]*\($\|[[:space:];{}()@"]\)\@='
-  \ nextgroup=agdaTypeDot
 
 " Match identifiers followed by a dot.
 syntax match agdaType
   \ '[^[:space:].;{}()@"]\+\.\@='
-  \ nextgroup=agdaTypeDot
 
 syntax match agdaAs '@'
 syntax match agdaDot '\.' contained
@@ -35,7 +33,6 @@ syntax match agdaKeyword 'eta-equality\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'field\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'forall\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'hiding\($\|[[:space:].;{}()@"]\)\@='
-syntax match agdaKeyword 'import\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'in\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'inductive\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'infix\($\|[[:space:].;{}()@"]\)\@='
@@ -70,10 +67,25 @@ syntax match agdaKeyword 'variable\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'where\($\|[[:space:].;{}()@"]\)\@='
 syntax match agdaKeyword 'with\($\|[[:space:].;{}()@"]\)\@='
 
+syntax match agdaKeyword 'import\($\|[[:space:].;{}()@"]\)\@='
+  \ skipnl skipwhite
+  \ nextgroup=agdaImport,agdaImportQualified
+syntax match agdaImport '[^[:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@='
+  \ contained skipnl skipwhite
+  \ nextgroup=agdaImportAs
+syntax match agdaImportQualified '[^[:space:].;{}()@"]\+\.\@='
+  \ contained
+  \ nextgroup=agdaImportDot
+syntax match agdaImportDot '\.'
+  \ contained
+  \ nextgroup=agdaImport,agdaImportQualified
+syntax match agdaImportAs 'as\($\|[[:space:].;{}()@"]\)\@=' contained
+
 syntax match agdaKeyword 'renaming\($\|[[:space:].;{}()@"]\)\@='
   \ skipnl skipwhite
   \ nextgroup=agdaRenaming
-syntax region agdaRenaming start='(' end=')' contained
+syntax region agdaRenaming start='(' end=')'
+  \ contained
   \ contains=agdaIdentifier,agdaOperator,agdaTo,agdaType
 syntax match agdaTo 'to\($\|[[:space:].;{}()@"]\)\@=' contained
 
@@ -154,6 +166,10 @@ highlight default link agdaChar agdaString
 highlight default link agdaComment Comment
 highlight default link agdaEllipses agdaOperator
 highlight default link agdaHole WarningMsg
+highlight default link agdaImport agdaType
+highlight default link agdaImportAs agdaKeyword
+highlight default link agdaImportDot agdaDot
+highlight default link agdaImportQualified agdaType
 highlight default link agdaKeyword Statement
 highlight default link agdaLine Comment
 highlight default link agdaNumber Number
