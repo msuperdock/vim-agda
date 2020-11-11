@@ -81,7 +81,6 @@ syntax match agdaTo 'to[[:space:]\n.;{}()@"]\@=' contained
 syntax match agdaComment '--.*'
 syntax region agdaComment start='{-' end='-}' contains=agdaBlockComment
 syntax region agdaPragma start='{-#' end='#-}'
-syntax match agdaLine '^─\+$'
 
 " ## Literals
 
