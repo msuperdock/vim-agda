@@ -319,12 +319,10 @@ function s:handle_goals_all(info)
       \ })
   endif
 
+  call s:handle_outputs(l:outputs, 1)
+
   if l:outputs == []
-    silent! bdelete Agda
     echom "All done."
-    let s:agda_loading = 0
-  else
-    call s:handle_outputs(l:outputs, 1)
   endif
 endfunction
 
@@ -566,6 +564,12 @@ endfunction
 " The optional argument indicates whether to use the Agda filetype.
 function s:handle_outputs(outputs, ...)
   let l:syntax = a:0 >= 1 && a:1
+
+  if a:outputs == []
+    let s:agda_loading = 0
+    silent! bdelete Agda
+    return
+  endif
 
   let l:names
     \ = map(copy(a:outputs), {_, val -> val['name']})
