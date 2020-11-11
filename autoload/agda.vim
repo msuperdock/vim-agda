@@ -484,10 +484,12 @@ function s:handle_context(info)
     \ , 'content': s:signature('Goal', a:info.type)
     \ })
 
-  call add(l:outputs,
-    \ { 'name': 'Context'
-    \ , 'content': s:handle_entries(a:info.entries)
-    \ })
+  if a:info.entries != []
+    call add(l:outputs,
+      \ { 'name': 'Context'
+      \ , 'content': s:handle_entries(a:info.entries)
+      \ })
+  endif
 
   call s:handle_outputs(l:outputs, 1)
 endfunction
@@ -565,10 +567,12 @@ endfunction
 function s:handle_outputs(outputs, ...)
   let l:syntax = a:0 >= 1 && a:1
 
-  let l:names = map(copy(a:outputs),
-    \ {_, val -> val['name']})
-  let l:contents = map(copy(a:outputs),
-    \ {_, val -> s:section(val['name'], val['content'])})
+  let l:names
+    \ = map(copy(a:outputs), {_, val -> val['name']})
+  let l:contents
+    \ = len(a:outputs) == 1
+    \ ? map(copy(a:outputs), {_, val -> val['content'] . "\n"})
+    \ : map(copy(a:outputs), {_, val -> s:section(val['name'], val['content'])})
   call s:handle_output
     \ ( join(l:names, ', ')
     \ , join(l:contents, '')
