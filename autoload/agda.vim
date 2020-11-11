@@ -84,7 +84,7 @@ endfunction
 " Give expression for hole at cursor.
 " The optional argument indicates whether to skip simplification.
 function agda#give(...)
-  let l:skip = a:0 >= 1 && a:1
+  let l:skip = get(a:, 1)
 
   if s:status(1) < 0
     return
@@ -519,7 +519,7 @@ endfunction
 " Print the given output in the Agda buffer.
 " The optional argument indicates whether to use the Agda filetype.
 function s:handle_output(name, content, ...)
-  let l:syntax = a:0 >= 1 && a:1
+  let l:syntax = get(a:, 1)
 
   " Clear echo area.
   echo ''
@@ -568,7 +568,7 @@ endfunction
 " The input should be a list of objects with `name` and `content` fields.
 " The optional argument indicates whether to use the Agda filetype.
 function s:handle_outputs(outputs, ...)
-  let l:syntax = a:0 >= 1 && a:1
+  let l:syntax = get(a:, 1)
 
   if a:outputs == []
     let s:agda_loading = 0
@@ -762,7 +762,7 @@ endfunction
 " Check whether Agda is loaded on the current file.
 " The optional argument indicates whether to also check if Agda is loading.
 function s:status(...)
-  let l:check_loading = a:0 >= 1 && a:1
+  let l:check_loading = get(a:, 1)
 
   let l:loaded
     \ = exists('g:agda_job')
