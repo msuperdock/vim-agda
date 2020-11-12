@@ -551,8 +551,8 @@ function s:handle_output(name, content, ...)
   let &l:readonly = 1
   silent! %foldopen!
 
-  " Load foldout.
-  if g:agda_foldout > 0
+  " Enable foldout if loaded.
+  if exists('g:foldout_loaded')
     let &l:filetype = l:syntax ? 'agda' : ''
     let b:foldout_heading_comment = 1
     let b:foldout_heading_ignore = '\(Errors\|Warnings\)'
