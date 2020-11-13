@@ -332,8 +332,7 @@ function s:handle_goals_all(info)
 endfunction
 
 function s:handle_goals(goals, visible)
-  let l:goals = map(copy(a:goals),
-    \ {_, val -> s:handle_goal(val, a:visible)})
+  let l:goals = map(copy(a:goals), {_, val -> s:handle_goal(val, a:visible)})
   return join(l:goals, '')
 endfunction
 
@@ -498,8 +497,7 @@ function s:handle_context(info)
 endfunction
 
 function s:handle_entries(entries)
-  let l:entries = map(a:entries,
-    \ {_, val -> s:handle_entry(val)})
+  let l:entries = map(a:entries, {_, val -> s:handle_entry(val)})
   return join(l:entries, '')
 endfunction
 
