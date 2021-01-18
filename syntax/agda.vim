@@ -76,7 +76,7 @@ syntax match agdaKeyword /import\($\|[[:space:].;{}()@"]\)\@=/
   \ nextgroup=agdaImport,agdaImportQualified
 syntax match agdaImport /[^[:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@=/
   \ contained skipnl skipwhite
-  \ nextgroup=agdaImportAs
+  \ nextgroup=agdaImportAs,agdaImportComment
 syntax match agdaImportQualified /[^[:space:].;{}()@"]\+\.\@=/
   \ contained
   \ nextgroup=agdaImportDot
@@ -89,7 +89,7 @@ syntax match agdaKeyword /renaming\($\|[[:space:].;{}()@"]\)\@=/
   \ skipnl skipwhite
   \ nextgroup=agdaRenaming
 syntax region agdaRenaming contained start=/(/ end=/)/
-  \ contains=agdaIdentifier,agdaOperator,agdaTo,agdaType
+  \ contains=agdaComment,agdaIdentifier,agdaOperator,agdaTo,agdaType
 syntax match agdaTo /to\($\|[[:space:].;{}()@"]\)\@=/ contained
 
 " ## Comments
@@ -98,6 +98,9 @@ syntax match agdaComment /--.*/
 syntax region agdaComment start=/{-/ end=/-}/
   \ contains=agdaBlockComment
 syntax region agdaPragma start=/{-#/ end=/#-}/
+
+syntax match agdaImportComment /--.*/ contained skipnl skipwhite
+  \ nextgroup=agdaImportAs
 
 " ## Literals
 
@@ -173,6 +176,7 @@ highlight default link agdaEllipses agdaOperator
 highlight default link agdaHole WarningMsg
 highlight default link agdaImport agdaType
 highlight default link agdaImportAs agdaKeyword
+highlight default link agdaImportComment agdaComment
 highlight default link agdaImportDot agdaDot
 highlight default link agdaImportQualified agdaType
 highlight default link agdaKeyword Statement
