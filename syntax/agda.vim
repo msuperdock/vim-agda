@@ -72,7 +72,7 @@ syntax match agdaKeyword /where\($\|[[:space:].;{}()@"]\)\@=/
 syntax match agdaKeyword /with\($\|[[:space:].;{}()@"]\)\@=/
 
 syntax match agdaKeyword /import\($\|[[:space:].;{}()@"]\)\@=/
-  \ skipnl skipwhite
+  \ skipwhite
   \ nextgroup=agdaImport,agdaImportQualified
 syntax match agdaImport /[^[:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@=/
   \ contained skipnl skipwhite
