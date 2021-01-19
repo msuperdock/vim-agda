@@ -391,11 +391,8 @@ function s:handle_points(points)
       \ && (l:pos4[0] == 0 || s:compare(l:pos1, l:pos4) < 0)
       \ && (l:pos5[0] == 0 || s:compare(l:pos1, l:pos5) < 0)
       
-      if l:pos1[0] < line('$')
-        call cursor(l:pos1[0] + 1, 1)
-      else
-        break
-      endif
+      call cursor(l:pos1)
+      call cursor(l:pos1[0], col('$'))
 
     " If block comment is found first:
     elseif l:pos2[0] > 0
