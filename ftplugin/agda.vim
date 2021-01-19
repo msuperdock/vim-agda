@@ -21,6 +21,11 @@ if !exists('g:agda_debug')
   let g:agda_debug = 0
 endif
 
+" The path to the Agda executable.
+if !exists('g:agda_path')
+  let g:agda_path = 'agda'
+endif
+
 " ## Comments
 
 let &l:comments = 's1fl:{-,mb:-,ex:-},:--'
