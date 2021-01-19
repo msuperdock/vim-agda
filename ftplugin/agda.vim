@@ -31,6 +31,10 @@ endif
 let &l:comments = 's1fl:{-,mb:-,ex:-},:--'
 let &l:commentstring = '-- %s'
 
+" ## Indentation
+
+let &l:indentexpr = 'agda#indent(v:lnum)'
+
 " ## Match pairs
 
 let &l:matchpairs

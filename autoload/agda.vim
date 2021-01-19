@@ -641,6 +641,36 @@ function s:signature(name, type)
     \ . "\n"
 endfunction
 
+" ## Indent
+
+" Compute indent level for a line.
+function agda#indent(lnum)
+  if a:lnum <= 1
+    return -1
+  endif
+    
+  let l:line = getline(a:lnum - 1)
+
+  let l:directive
+    \ = l:line =~# '\musing\($\|[[:space:].;{}()@"]\)'
+    \ || l:line =~# '\mrenaming\($\|[[:space:].;{}()@"]\)'
+    \ || l:line =~# '\mhiding\($\|[[:space:].;{}()@"]\)'
+  if !l:directive
+    return -1
+  endif
+
+  let l:directive_open
+    \ = l:line =~# '\musing\s*$'
+    \ || l:line =~# '\mrenaming\s*$'
+    \ || l:line =~# '\mhiding\s*$'
+    \ || count(l:line, '(') > count(l:line, ')')
+  if !l:directive_open
+    return -1
+  endif
+
+  return indent(a:lnum) + shiftwidth()
+endfunction
+
 " ## Utilities
 
 " Return -1 if point1 is before point2.
