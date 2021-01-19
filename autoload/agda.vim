@@ -39,11 +39,27 @@ function agda#load()
     \ )
 endfunction
 
+" ### Abort
+
+" Abort the current Agda process operation.
+function agda#abort()
+  if s:status(2) < 0
+    return
+  endif
+
+  if s:agda_loading == 0
+    echom 'Nothing to abort.'
+    return
+  endif
+
+  call s:send('Cmd_abort', 1)
+endfunction
+
 " ### Next
 
 " Move cursor to next hole.
 function agda#next()
-  if s:status() < 0
+  if s:status(1) < 0
     return
   endif
 
@@ -63,7 +79,7 @@ endfunction
 
 " Move cursor to previous hole.
 function agda#previous()
-  if s:status() < 0
+  if s:status(1) < 0
     return
   endif
 
@@ -83,7 +99,7 @@ endfunction
 
 " Give expression for hole at cursor.
 function agda#give()
-  if s:status(1) < 0
+  if s:status() < 0
     return
   endif
 
@@ -111,7 +127,7 @@ endfunction
 
 " Refine expression for hole at cursor.
 function agda#refine()
-  if s:status(1) < 0
+  if s:status() < 0
     return
   endif
 
@@ -140,7 +156,7 @@ endfunction
 
 " Display context for hole at cursor.
 function agda#context()
-  if s:status(1) < 0
+  if s:status() < 0
     return
   endif
 
@@ -272,6 +288,11 @@ function s:handle_line(line)
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'IntroNotFound'
     call s:handle_loading(0)
     echom 'No introduction forms found.'
+
+  " Handle abort.
+  elseif l:json.kind ==# 'DoneAborting'
+    call s:handle_loading(0)
+    echom 'Aborted the current command.'
 
   " Handle give.
   elseif l:json.kind ==# 'GiveAction'
@@ -776,29 +797,37 @@ function s:replace(window, start, end, str)
 endfunction
 
 " Send command to the Agda job.
-function s:send(command)
-  call s:handle_loading(1)
+" The optional argument indicates whether to send an indirect command.
+function s:send(command, ...)
+  let l:indirect = get(a:, 1)
+  
+  if !l:indirect
+    call s:handle_loading(1)
+  endif
+
   call chansend(g:agda_job
     \ , 'IOTCM'
     \ . ' "' . s:code_file . '"'
     \ . ' None'
-    \ . ' Direct'
+    \ . (l:indirect ? ' Indirect' : ' Direct')
     \ . ' (' . a:command . ')'
     \ . "\n"
     \ )
 endfunction
 
 " Check whether Agda is loaded on the current file.
-" The optional argument indicates whether to also check if Agda is loading.
+" With no optional argument, require that Agda is loaded and not busy.
+" With optional argument of 1, require only that Agda is loaded.
+" With optional argument of 2, require only that Agda has started loading.
 function s:status(...)
-  let l:check_loading = get(a:, 1)
+  let l:mode = get(a:, 1)
 
   let l:loaded
     \ = exists('g:agda_job')
-    \ && exists('s:agda_loading')
-    \ && exists('s:code_file')
-    \ && exists('s:code_window')
-    \ && exists('s:points')
+    \ && (l:mode == 2 || exists('s:agda_loading'))
+    \ && (l:mode == 2 || exists('s:code_file'))
+    \ && (l:mode == 2 || exists('s:code_window'))
+    \ && (l:mode == 2 || exists('s:points'))
     \ && g:agda_job >= 0
 
   if !l:loaded
@@ -807,7 +836,7 @@ function s:status(...)
   elseif expand('%:p') !=# s:code_file
     echom 'Agda loaded on different file.'
     return -1
-  elseif l:check_loading && s:agda_loading > 0
+  elseif l:mode == 0 && s:agda_loading > 0
     echom 'Loading Agda (command ignored).'
     return -1
   endif

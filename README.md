@@ -21,7 +21,8 @@ The following functions are currently supported:
 
 | function | description |
 | --- | --- |
-| `agda#load()` | Load or reload agda. |
+| `agda#load()` | Load or reload Agda. |
+| `agda#abort()` | Abort the current Agda command. |
 | `agda#next()` | Move cursor to next hole. |
 | `agda#previous()` | Move cursor to previous hole. |
 | `agda#give()` | Give expression for hole at cursor. |
