@@ -82,10 +82,7 @@ endfunction
 " ### Give
 
 " Give expression for hole at cursor.
-" The optional argument indicates whether to skip simplification.
-function agda#give(...)
-  let l:skip = get(a:, 1)
-
+function agda#give()
   if s:status(1) < 0
     return
   endif
@@ -102,7 +99,6 @@ function agda#give(...)
     return
   endif
 
-  let s:give = l:skip ? l:input : ''
   call s:send('Cmd_give'
     \ . ' WithoutForce'
     \ . ' ' . l:id
@@ -132,7 +128,6 @@ function agda#refine()
     return
   endif
 
-  let s:give = ''
   call s:send('Cmd_refine_or_intro'
     \ . ' False'
     \ . ' ' . l:id
@@ -281,8 +276,7 @@ function s:handle_line(line)
 
   " Handle give.
   elseif l:json.kind ==# 'GiveAction'
-    let l:result = s:give ==# '' ? l:json.giveResult.str : s:give
-    call s:handle_give(l:result, l:json.interactionPoint.id)
+    call s:handle_give(l:json.giveResult.str, l:json.interactionPoint.id)
 
   " Handle interaction points.
   elseif l:json.kind ==# 'InteractionPoints'
