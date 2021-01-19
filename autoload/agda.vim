@@ -8,7 +8,7 @@ function agda#load()
 
   augroup agda
     autocmd! * <buffer>
-    autocmd BufUnload <buffer> silent! bunload Agda
+    autocmd BufUnload <buffer> silent! bdelete Agda
   augroup end
 
   if exists('s:agda_loading') && s:agda_loading > 0
@@ -227,7 +227,8 @@ function s:handle_unused(id, data, event)
   " Handle output.
   if l:json.type ==# 'none'
     let s:agda_loading = 0
-    silent! bunload Agda
+    echom 'test1'
+    silent! bdelete Agda
     echom trim(l:json.message)
   elseif l:json.type ==# 'unused'
     call s:handle_output('Unused', l:json.message)
@@ -301,6 +302,7 @@ function s:handle_goals_all(info)
     call add(l:outputs,
       \ { 'name': 'Goals'
       \ , 'content': l:output
+      \ , 'code': 1
       \ })
   endif
 
@@ -308,6 +310,7 @@ function s:handle_goals_all(info)
     call add(l:outputs,
       \ { 'name': 'Warnings'
       \ , 'content': a:info.warnings
+      \ , 'code': 0
       \ })
   endif
 
@@ -315,10 +318,11 @@ function s:handle_goals_all(info)
     call add(l:outputs,
       \ { 'name': 'Errors'
       \ , 'content': a:info.errors
+      \ , 'code': 0
       \ })
   endif
 
-  call s:handle_outputs(l:outputs, 1)
+  call s:handle_outputs(l:outputs)
 
   if l:outputs == []
     echom "All done."
@@ -478,16 +482,18 @@ function s:handle_context(info)
   call add(l:outputs,
     \ { 'name': 'Goal'
     \ , 'content': s:signature('Goal', a:info.type)
+    \ , 'code': 1
     \ })
 
   if a:info.entries != []
     call add(l:outputs,
       \ { 'name': 'Context'
       \ , 'content': s:handle_entries(a:info.entries)
+      \ , 'code': 1
       \ })
   endif
 
-  call s:handle_outputs(l:outputs, 1)
+  call s:handle_outputs(l:outputs)
 endfunction
 
 function s:handle_entries(entries)
@@ -509,9 +515,9 @@ endfunction
 " ### Output
 
 " Print the given output in the Agda buffer.
-" The optional argument indicates whether to use the Agda filetype.
+" The optional argument indicates whether to treat the output as code.
 function s:handle_output(name, content, ...)
-  let l:syntax = get(a:, 1)
+  let l:code = get(a:, 1)
 
   " Clear echo area.
   echo ''
@@ -545,7 +551,7 @@ function s:handle_output(name, content, ...)
 
   " Enable foldout if loaded.
   if exists('g:foldout_loaded')
-    let &l:filetype = l:syntax ? 'agda' : ''
+    let &l:filetype = l:code ? 'agda' : ''
     let b:foldout_heading_comment = 1
     let b:foldout_heading_ignore = '\(Errors\|Warnings\)'
     let b:foldout_heading_string = '-- %s'
@@ -557,14 +563,15 @@ function s:handle_output(name, content, ...)
 endfunction
 
 " Print the given outputs in the Agda buffer, under separate headings.
-" The input should be a list of objects with `name` and `content` fields.
-" The optional argument indicates whether to use the Agda filetype.
-function s:handle_outputs(outputs, ...)
-  let l:syntax = get(a:, 1)
-
+" The input should be a list of objects with `name`, `content`, `code` fields:
+" - The `name` field is a string for the section heading.
+" - The `content` field is a string for the section contents.
+" - The `code` field is a flag indicating whether to treat the contents as code.
+function s:handle_outputs(outputs)
   if a:outputs == []
     let s:agda_loading = 0
-    silent! bunload Agda
+    echom 'test2'
+    silent! bdelete Agda
     return
   endif
 
@@ -574,10 +581,13 @@ function s:handle_outputs(outputs, ...)
     \ = len(a:outputs) == 1
     \ ? map(copy(a:outputs), {_, val -> val['content'] . "\n"})
     \ : map(copy(a:outputs), {_, val -> s:section(val['name'], val['content'])})
+  let l:code
+    \ = len(a:outputs) != 1 || a:outputs[0].code
+
   call s:handle_output
     \ ( join(l:names, ', ')
     \ , join(l:contents, '')
-    \ , l:syntax
+    \ , l:code
     \ )
 endfunction
 
