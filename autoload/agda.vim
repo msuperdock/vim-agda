@@ -161,13 +161,12 @@ endfunction
 
 " Check for unused code in the current module.
 function agda#unused()
-  silent update
-
   if exists('s:agda_loading') && s:agda_loading > 0
     echom 'Loading Agda (command ignored).'
     return
   endif
 
+  silent update
   let l:agda_unused_job = jobstart
     \ ( ['agda-unused', '--local', expand('%'), '--json']
     \ , {'on_stdout': function('s:handle_unused')}
@@ -227,7 +226,6 @@ function s:handle_unused(id, data, event)
   " Handle output.
   if l:json.type ==# 'none'
     let s:agda_loading = 0
-    echom 'test1'
     silent! bdelete Agda
     echom trim(l:json.message)
   elseif l:json.type ==# 'unused'
@@ -573,7 +571,6 @@ endfunction
 function s:handle_outputs(outputs)
   if a:outputs == []
     let s:agda_loading = 0
-    echom 'test2'
     silent! bdelete Agda
     return
   endif
