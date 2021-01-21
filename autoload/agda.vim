@@ -377,9 +377,6 @@ function s:handle_points(points)
   let l:start = '\(^\|[[:space:].;{}()@"]\)'
   let l:end = '\($\|[[:space:].;{}()@"]\)'
 
-  " Get sorted list of ids.
-  let l:ids = sort(map(a:points, {_, val -> val.id}), 'n')
-
   " Go to beginning of code window.
   execute s:code_window . 'wincmd w'
   call cursor(1, 1)
@@ -388,7 +385,7 @@ function s:handle_points(points)
   let s:points = []
 
   let l:index = 0
-  while l:index < len(l:ids)
+  while l:index < len(a:points)
     
     " Match single-line comments.
     let l:pos1 = searchpos('\m' . l:start . '--', 'nWz')
@@ -441,7 +438,7 @@ function s:handle_points(points)
       \ && (l:pos5[0] == 0 || s:compare(l:pos4, l:pos5) < 0)
 
       let s:points += [
-        \ { 'id': l:ids[l:index]
+        \ { 'id': a:points[l:index].id
         \ , 'start': l:pos4
         \ , 'end': l:pos4
         \ }]
@@ -462,7 +459,7 @@ function s:handle_points(points)
       endif
 
       let s:points += [
-        \ { 'id': l:ids[l:index]
+        \ { 'id': a:points[l:index].id
         \ , 'start': l:pos5
         \ , 'end': l:pos6
         \ }]
