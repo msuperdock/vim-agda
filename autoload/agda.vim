@@ -292,7 +292,7 @@ function s:handle_line(line)
   " Handle abort.
   elseif l:json.kind ==# 'DoneAborting'
     call s:handle_loading(0)
-    echom 'Aborted the current command.'
+    echom 'Aborted Agda command.'
 
   " Handle give.
   elseif l:json.kind ==# 'GiveAction'
