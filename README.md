@@ -1,6 +1,6 @@
 # vim-agda
 
-A neovim plugin for Agda 2.6.1 (and 2.6.1.1):
+A neovim plugin for Agda:
 
 - Asynchronous type-checking, using Agda's `--interaction-json` interface.
 - Simplified syntax highlighting, without relying on Agda's syntax data.
@@ -14,6 +14,8 @@ The syntax highlighting uses the following basic approach:
 
 As a result, we support interaction with the agda executable, without
 sacrificing the ability to quickly open and view syntax-highlighted Agda code.
+
+Supported Agda versions: `>= 2.6.1 && < 2.6.2`.
 
 ## Functions
 
@@ -30,8 +32,9 @@ The following functions are currently supported:
 | `agda#environment()` | Display environment for hole at cursor. |
 | `agda#unused()` | Check the current file for unused code. |
 
-The `agda#unused()` function requires the `agda-unused` executable to be
-installed on your system; see [here](https://github.com/msuperdock/agda-unused).
+The `agda#unused()` function requires the `agda-unused` executable (version
+`>= 1.0.0`) to be installed on your system; see
+[here](https://github.com/msuperdock/agda-unused).
 
 ## Alternatives
 

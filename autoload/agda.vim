@@ -184,7 +184,7 @@ function agda#unused()
 
   silent update
   let l:agda_unused_job = jobstart
-    \ ( ['agda-unused', '--local', expand('%'), '--json']
+    \ ( ['agda-unused', expand('%'), '--json']
     \ , {'on_stdout': function('s:handle_unused')}
     \ )
 
