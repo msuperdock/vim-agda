@@ -17,7 +17,7 @@ function agda#load()
   endif
 
   if !exists('g:agda_job') || g:agda_job < 0
-    let g:agda_job = jobstart([g:agda_path, '--interaction-json'] + g:agda_args
+    let g:agda_job = jobstart(['agda', '--interaction-json'] + g:agda_args
       \ , {'on_stdout': function('s:handle_event')})
   endif
 
@@ -184,7 +184,7 @@ function agda#unused()
 
   silent update
   let l:agda_unused_job = jobstart
-    \ ( ['agda-unused', expand('%'), '--json']
+    \ ( ['agda-unused', expand('%'), '--json'] + g:agda_unused_args
     \ , {'on_stdout': function('s:handle_unused')}
     \ )
 

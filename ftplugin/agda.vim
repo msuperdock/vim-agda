@@ -16,14 +16,14 @@ if !exists('g:agda_args')
   let g:agda_args = []
 endif
 
+" A list of command line arguments for the agda-unused executable.
+if !exists('g:agda_unused_args')
+  let g:agda_unused_args = []
+endif
+
 " Whether to log output from the Agda executable to the messages buffer.
 if !exists('g:agda_debug')
   let g:agda_debug = 0
-endif
-
-" The path to the Agda executable.
-if !exists('g:agda_path')
-  let g:agda_path = 'agda'
 endif
 
 " ## Comments
