@@ -229,6 +229,7 @@ endfunction
 function s:handle_unused(id, data, event)
   " Check if output is non-empty; return if not.
   if len(a:data) == 0
+    call s:handle_clear('Failed to run agda-unused.')
     return
   endif
 
@@ -236,14 +237,13 @@ function s:handle_unused(id, data, event)
   try
     let l:json = json_decode(a:data[0])
   catch
+    call s:handle_clear('Failed to run agda-unused.')
     return
   endtry
 
   " Handle output.
   if l:json.type ==# 'none'
-    let s:agda_loading = 0
-    silent! bdelete Agda
-    echom trim(l:json.message)
+    call s:handle_clear(trim(l:json.message))
   elseif l:json.type ==# 'unused'
     call s:handle_output('Unused', l:json.message)
   elseif l:json.type ==# 'error'
@@ -342,10 +342,6 @@ function s:handle_goals_all(info)
   endif
 
   call s:handle_outputs(l:outputs)
-
-  if l:outputs == []
-    echom "All done."
-  endif
 endfunction
 
 function s:handle_goals(goals, visible)
@@ -585,8 +581,7 @@ endfunction
 " - The `code` field is a flag indicating whether to treat the contents as code.
 function s:handle_outputs(outputs)
   if a:outputs == []
-    let s:agda_loading = 0
-    silent! bdelete Agda
+    call s:handle_clear('All done.')
     return
   endif
 
@@ -604,6 +599,13 @@ function s:handle_outputs(outputs)
     \ , join(l:contents, '')
     \ , l:code
     \ )
+endfunction
+
+" Clear the agda buffer, and echo the given message string.
+function s:handle_clear(message)
+  let s:agda_loading = 0
+  silent! bdelete Agda
+  echom a:message
 endfunction
 
 " Display loading status in Agda buffer name.
