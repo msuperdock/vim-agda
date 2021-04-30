@@ -229,7 +229,6 @@ endfunction
 function s:handle_unused(id, data, event)
   " Check if output is non-empty; return if not.
   if len(a:data) == 0
-    call s:handle_clear('Failed to run agda-unused.')
     return
   endif
 
@@ -237,7 +236,6 @@ function s:handle_unused(id, data, event)
   try
     let l:json = json_decode(a:data[0])
   catch
-    call s:handle_clear('Failed to run agda-unused.')
     return
   endtry
 
