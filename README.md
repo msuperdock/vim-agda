@@ -33,6 +33,6 @@ The following functions are currently supported:
 | `agda#unused()` | Check the current file for unused code. |
 
 The `agda#unused()` function requires the `agda-unused` executable (version
-`>= 1.0.0`) to be installed on your system; see
+`>= 0.3.0`) to be installed on your system; see
 [here](https://github.com/msuperdock/agda-unused).
 
