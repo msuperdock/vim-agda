@@ -15,7 +15,7 @@ The syntax highlighting uses the following basic approach:
 As a result, we support interaction with the agda executable, without
 sacrificing the ability to quickly open and view syntax-highlighted Agda code.
 
-Supported Agda versions: `>= 2.6.1 && < 2.6.2`.
+Supported Agda versions: `>= 2.6.2 && < 2.6.3`.
 
 ## Functions
 
@@ -35,25 +35,4 @@ The following functions are currently supported:
 The `agda#unused()` function requires the `agda-unused` executable (version
 `>= 1.0.0`) to be installed on your system; see
 [here](https://github.com/msuperdock/agda-unused).
-
-## Alternatives
-
-This plugin draws on ideas & code from each of the following plugins. Here's a
-comparison:
-
-[derekelkins/agda-vim](https://github.com/derekelkins/agda-vim)
-
-- Supports Agda 2.6.1.
-- Doesn't (yet) support asynchronous type-checking.
-- Provides syntax highlighting, which is updated by Agda's syntax data.
-- On opening a file, the agda executable is started, and the file is loaded.
-- Supports most (all?) of the commands supported by the official emacs mode.
-
-[pedrominicz/magda](https://github.com/pedrominicz/magda)
-
-- Doesn't (yet) support Agda 2.6.1.
-- Supports asynchronous type-checking.
-- Doesn't provide syntax highlighting.
-- On opening a file, the agda executable is started, but the file is not loaded.
-- Only supports a few commands (load, compute).
 

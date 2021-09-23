@@ -276,7 +276,7 @@ function s:handle_line(line)
 
   " Handle errors.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'Error'
-    call s:handle_output('Error', l:json.info.message)
+    call s:handle_error(l:json.info)
 
   " Handle context.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'GoalSpecific'
@@ -316,28 +316,14 @@ function s:handle_goals_all(info)
     let l:output
       \ = s:handle_goals(a:info.visibleGoals, 1)
       \ . s:handle_goals(a:info.invisibleGoals, 0)
-    call add(l:outputs,
-      \ { 'name': 'Goals'
-      \ , 'content': l:output
-      \ , 'code': 1
-      \ })
+    call s:append_output(l:outputs, 'Goals', l:output, 1)
   endif
 
-  if a:info.warnings !=# ''
-    call add(l:outputs,
-      \ { 'name': 'Warnings'
-      \ , 'content': a:info.warnings
-      \ , 'code': 0
-      \ })
-  endif
+  call s:append_messages(l:outputs, 'Warnings', a:info.warnings)
+  call s:append_messages(l:outputs, 'Errors', a:info.errors)
 
-  if a:info.errors !=# ''
-    call add(l:outputs,
-      \ { 'name': 'Errors'
-      \ , 'content': a:info.errors
-      \ , 'code': 0
-      \ })
-  endif
+  echom string(a:info.errors)
+  echom string(l:outputs)
 
   call s:handle_outputs(l:outputs)
 endfunction
@@ -349,10 +335,13 @@ endfunction
 
 function s:handle_goal(goal, visible)
   if a:goal.kind ==# 'OfType'
-    let l:name = (a:visible ? '?' : '') . a:goal.constraintObj
+    let l:name
+      \ = a:visible
+      \ ? '?' . a:goal.constraintObj.id
+      \ : a:goal.constraintObj.name
     return s:signature(l:name, a:goal.type)
   elseif a:goal.kind ==# 'JustSort'
-    return s:signature(a:goal.constraintObj, 'Sort')
+    return s:signature(a:goal.constraintObj.name, 'Sort')
   else
     echoerr 'Unrecognized goal.'
   endif
@@ -489,26 +478,15 @@ endfunction
 function s:handle_context(info)
   let l:outputs = []
 
-  call add(l:outputs,
-    \ { 'name': 'Goal'
-    \ , 'content': s:signature('Goal', a:info.type)
-    \ , 'code': 1
-    \ })
-
-  if a:info.entries != []
-    call add(l:outputs,
-      \ { 'name': 'Context'
-      \ , 'content': s:handle_entries(a:info.entries)
-      \ , 'code': 1
-      \ })
-  endif
-
+  call s:append_output(l:outputs, 'Goal',
+    \ s:signature('Goal', a:info.type), 1)
+  call s:append_output(l:outputs, 'Context',
+    \ s:handle_entries(a:info.entries), 1)
   call s:handle_outputs(l:outputs)
 endfunction
 
 function s:handle_entries(entries)
-  let l:entries = map(a:entries, {_, val -> s:handle_entry(val)})
-  return join(l:entries, '')
+  return join(map(copy(a:entries), {_, val -> s:handle_entry(val)}), '')
 endfunction
 
 function s:handle_entry(entry)
@@ -520,6 +498,29 @@ endfunction
 
 function s:handle_message(message)
   echom trim(substitute(a:message, '\m (.*)', '', 'g'))
+endfunction
+
+function s:append_message(outputs, name, content)
+  return s:append_output(a:outputs, a:name, a:content.message . "\n")
+endfunction
+
+function s:append_messages(outputs, name, contents)
+  if a:contents == []
+    return a:outputs
+  endif
+
+  let l:messages = map(copy(a:contents), {_, val -> val['message'] . "\n"})
+  return s:append_output(a:outputs, a:name, join(l:messages, ''))
+endfunction
+
+" ### Error
+
+function s:handle_error(info)
+  let l:outputs = []
+
+  call s:append_messages(l:outputs, 'Warnings', a:info.warnings)
+  call s:append_message(l:outputs, 'Error', a:info.error)
+  call s:handle_outputs(l:outputs)
 endfunction
 
 " ### Output
@@ -634,6 +635,16 @@ function s:handle_loading(loading)
   execute l:current . 'wincmd w'
 endfunction
 
+function s:append_output(outputs, name, content, ...)
+  let l:code = get(a:, 1)
+
+  return add(a:outputs,
+    \ { 'name': a:name
+    \ , 'content': a:content
+    \ , 'code': l:code
+    \ })
+endfunction
+
 " ## Print
 
 " Escape a string for passing to the Agda executable.
@@ -655,7 +666,7 @@ function s:signature(name, type)
   return a:name
     \ . "\n"
     \ . '  : '
-    \ . join(split(a:type, '\n'), "\n    ")
+    \ . join(split(a:type, "\n"), "\n    ")
     \ . "\n"
 endfunction
 
