@@ -322,9 +322,6 @@ function s:handle_goals_all(info)
   call s:append_messages(l:outputs, 'Warnings', a:info.warnings)
   call s:append_messages(l:outputs, 'Errors', a:info.errors)
 
-  echom string(a:info.errors)
-  echom string(l:outputs)
-
   call s:handle_outputs(l:outputs)
 endfunction
 
