@@ -630,8 +630,7 @@ endfunction
 
 " Go to the nth character in the buffer.
 function s:goto(n)
-  call cursor(1, 1)
-  call search('\_.\{' . a:n . '}', 'ceW')
+  execute 'goto ' . byteidxcomp(join(getline(1, '$'), "\n"), a:n)
 endfunction
 
 " Get id of interaction point at cursor, or return -1 on failure.
