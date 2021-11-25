@@ -1,38 +1,117 @@
 # vim-agda
 
-A neovim plugin for Agda:
+A neovim plugin for Agda, featuring:
 
-- Asynchronous type-checking, using Agda's `--interaction-json` interface.
-- Simplified syntax highlighting, without relying on Agda's syntax data.
-- Deferred starting of the agda executable until requested.
+- Asynchronous type-checking.
+- Simple & correct syntax highlighting.
+- Unicode character input (e.g. `\to` for `→`).
 
-The syntax highlighting uses the following basic approach:
+Optional integrations:
 
-- Identifiers with no letters are treated as operators.
-- Identifiers beginning with a capital letter are treated as types.
-- All other identifiers are treated as ordinary identifiers.
-
-As a result, we support interaction with the agda executable, without
-sacrificing the ability to quickly open and view syntax-highlighted Agda code.
+- Syntax highlighting & folding in interaction buffer via
+  [vim-foldout](https://github.com/msuperdock/vim-foldout).
+- Unused code checking via
+  [agda-unused](https://github.com/msuperdock/agda-unused).
 
 Supported Agda versions: `>= 2.6.2 && < 2.6.3`.
 
+## Installation
+
+Use your preferred installation method. For example, with
+[vim-plug](https://github.com/junegunn/vim-plug), use:
+
+```
+Plug 'msuperdock/vim-agda'
+```
+
+If you'd like to use the optional integrations, you can find installation
+instructions for vim-foldout & agda-unused at the following links:
+
+- [vim-foldout](https://github.com/msuperdock/vim-foldout).
+- [agda-unused](https://github.com/msuperdock/agda-unused).
+
 ## Functions
 
-The following functions are currently supported:
+vim-agda provides the functions in the table below; we also present the
+corresponding emacs commands for reference. You can bind a key to a function in
+your `init.vim` using, for example:
 
-| function | description |
+```
+autocmd BufWinEnter *.agda noremap <silent> <buffer> <leader>l :call agda#load()<cr>
+```
+
+This binds `<leader>l` to `agda#load()` for all `.agda` files.
+
+| function | emacs | description |
 | --- | --- |
-| `agda#load()` | Load or reload Agda. |
-| `agda#abort()` | Abort the current Agda command. |
-| `agda#next()` | Move cursor to next hole. |
-| `agda#previous()` | Move cursor to previous hole. |
-| `agda#give()` | Give expression for hole at cursor. |
-| `agda#refine()` | Refine expression for hole at cursor. |
-| `agda#environment()` | Display environment for hole at cursor. |
-| `agda#unused()` | Check the current file for unused code. |
+| `agda#load()` | `C-c C-l` | Load or reload Agda. |
+| `agda#abort()` | `C-c C-x C-a` | Abort the current Agda command. |
+| `agda#next()` | `C-c C-f` | Move cursor to next hole. |
+| `agda#previous()` | `C-c C-b` | Move cursor to previous hole. |
+| `agda#give()` | `C-c C-SPC` | Give expression for hole at cursor. |
+| `agda#refine()` | `C-c C-r` | Refine expression for hole at cursor. |
+| `agda#context()` | `C-c C-e` | Display context for hole at cursor. |
+| `agda#unused()` | n/a | Check the current file for unused code. |
 
-The `agda#unused()` function requires the `agda-unused` executable (version
-`>= 0.3.0`) to be installed on your system; see
-[here](https://github.com/msuperdock/agda-unused).
+The `agda#unused()` function requires the
+[agda-unused](https://github.com/msuperdock/agda-unused) executable (version
+`>= 0.3.0`) to be installed on your system.
+
+## Options
+
+vim-agda provides the following global option variables for configuration. You
+can set an option in your `init.vim` using, for example:
+
+```
+let g:agda_args = ['--local-interfaces']
+```
+
+| variable | default | description |
+| --- | --- | --- |
+| `g:agda_args` | `[]` | Arguments for `agda` executable. |
+| `g:agda_unused_args` | `[]` | Arguments for `agda-unused` executable. |
+| `g:agda_debug` | `0` | Log interaction output to the messages buffer. |
+
+## vim-foldout
+
+vim-agda provides optional syntax highlighting & folding in the interaction
+buffer via [vim-foldout](https://github.com/msuperdock/vim-foldout). For
+example, consider the following Agda file:
+
+```
+module Test where
+
+postulate
+
+x = ?
+```
+
+After calling `agda#load()`, the interaction buffer appears:
+
+```
+-- ## Goals
+
+?0
+  : _1
+_0
+  : Sort
+_1
+  : _0
+
+-- ## Warnings
+
+/data/code/agda-test/Test.agda:3,1-10
+Empty postulate block.
+
+```
+
+If [vim-foldout](https://github.com/msuperdock/vim-foldout) is installed &
+enabled, then:
+
+- The goals are syntax-highlighted as Agda code.
+- The two headings, "Goals" & "Warnings" are syntax-highlighted as headings.
+- The two sections can be folded using
+  [vim-foldout](https://github.com/msuperdock/vim-foldout) commands.
+
+Otherwise, the interaction buffer is not syntax-highlighted at all.
 

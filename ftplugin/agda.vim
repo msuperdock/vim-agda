@@ -9,14 +9,14 @@ else
   let b:agda_loaded = 1
 endif
 
-" ## Global options
+" ## Options
 
-" A list of command line arguments for the agda executable.
+" A list of arguments for the agda executable.
 if !exists('g:agda_args')
   let g:agda_args = []
 endif
 
-" A list of command line arguments for the agda-unused executable.
+" A list of arguments for the agda-unused executable.
 if !exists('g:agda_unused_args')
   let g:agda_unused_args = []
 endif
