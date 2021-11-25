@@ -300,6 +300,10 @@ function s:handle_line(line)
   elseif l:json.kind ==# 'InteractionPoints'
     call s:handle_points(l:json.interactionPoints)
 
+  " Handle jump to error.
+  elseif l:json.kind ==# 'JumpToError'
+    call s:goto(l:json.position)
+
   " Handle status messages.
   elseif l:json.kind ==# 'RunningInfo'
     call s:handle_message(l:json.message)
@@ -717,6 +721,12 @@ function s:compare(point1, point2)
   else
     return 0
   endif
+endfunction
+
+" Go to the nth character in the buffer.
+function s:goto(n)
+  call cursor(1, 1)
+  call search('\_.\{' . a:n . '}', 'ceW')
 endfunction
 
 " Get id of interaction point at cursor, or return -1 on failure.
