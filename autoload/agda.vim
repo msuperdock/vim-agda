@@ -86,7 +86,7 @@ function agda#previous()
   let l:pos = [line('.'), col('.')]
   for l:point in reverse(s:points)
     if s:compare(l:point.end, l:pos) < 0
-      call cursor(l:point.end)
+      call cursor(l:point.start)
       echo ''
       return
     endif
