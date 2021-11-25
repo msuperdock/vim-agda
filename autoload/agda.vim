@@ -352,114 +352,19 @@ endfunction
 
 " Initialize script-local points list.
 function s:handle_points(points)
-  " Save initial position.
-  let l:window = winnr()
-  let l:line = line('.')
-  let l:col = col('.')
+  let s:points = map(copy(a:points), {_, val -> s:handle_point(val)})
+endfunction
 
-  " Patterns for start & end of token.
-  let l:start = '\(^\|[[:space:].;{}()@"]\)'
-  let l:end = '\($\|[[:space:].;{}()@"]\)'
+function s:handle_point(point)
+  return
+    \ { 'id': a:point.id
+    \ , 'start': s:handle_position(a:point.range[0].start, 0)
+    \ , 'end': s:handle_position(a:point.range[0].end, -1)
+    \ }
+endfunction
 
-  " Go to beginning of code window.
-  execute s:code_window . 'wincmd w'
-  call cursor(1, 1)
-
-  " Initialize points list.
-  let s:points = []
-
-  let l:index = 0
-  while l:index < len(a:points)
-    
-    " Match single-line comments.
-    let l:pos1 = searchpos('\m' . l:start . '--', 'nWz')
-
-    " Match block comments.
-    let l:pos2 = searchpos('\m{-', 'nWz')
-
-    " Match strings.
-    let l:pos3 = searchpos('\m"', 'nWz')
-
-    " Match holes.
-    let l:pos4 = searchpos('\m' . l:start . '\zs?' . l:end, 'nWz')
-
-    " Match block holes.
-    let l:pos5 = searchpos('\m{!', 'nWz')
-
-    " If single-line comment is found first:
-    if l:pos1[0] > 0
-      \ && (l:pos2[0] == 0 || s:compare(l:pos1, l:pos2) < 0)
-      \ && (l:pos3[0] == 0 || s:compare(l:pos1, l:pos3) < 0)
-      \ && (l:pos4[0] == 0 || s:compare(l:pos1, l:pos4) < 0)
-      \ && (l:pos5[0] == 0 || s:compare(l:pos1, l:pos5) < 0)
-      
-      call cursor(l:pos1)
-      call cursor(l:pos1[0], col('$'))
-
-    " If block comment is found first:
-    elseif l:pos2[0] > 0
-      \ && (l:pos3[0] == 0 || s:compare(l:pos2, l:pos3) < 0)
-      \ && (l:pos4[0] == 0 || s:compare(l:pos2, l:pos4) < 0)
-      \ && (l:pos5[0] == 0 || s:compare(l:pos2, l:pos5) < 0)
-
-      call cursor(l:pos2)
-      if searchpair('\m{-', '', '\m-}', 'Wz') <= 0
-        break
-      endif
-
-    " If string is found first:
-    elseif l:pos3[0] > 0
-      \ && (l:pos4[0] == 0 || s:compare(l:pos3, l:pos4) < 0)
-      \ && (l:pos5[0] == 0 || s:compare(l:pos3, l:pos5) < 0)
-
-      call cursor(l:pos3)
-      if search('\m"', 'Wz') <= 0 || s:next() == 0
-        break
-      endif
-
-    " If hole is found first:
-    elseif l:pos4[0] > 0
-      \ && (l:pos5[0] == 0 || s:compare(l:pos4, l:pos5) < 0)
-
-      let s:points += [
-        \ { 'id': a:points[l:index].id
-        \ , 'start': l:pos4
-        \ , 'end': l:pos4
-        \ }]
-      let l:index += 1
-
-      call cursor(l:pos4)
-      if s:next() == 0
-        break
-      endif
-
-    " If block hole is found first:
-    elseif l:pos5[0] > 0
-
-      call cursor(l:pos5)
-      let l:pos6 = searchpairpos('\m{!', '', '\m!\zs}', 'Wz')
-      if l:pos6[0] == 0
-        break
-      endif
-
-      let s:points += [
-        \ { 'id': a:points[l:index].id
-        \ , 'start': l:pos5
-        \ , 'end': l:pos6
-        \ }]
-      let l:index += 1
-
-    " If no match is found:
-    else
-
-      break
-
-    endif
-  endwhile
-
-  " Restore original position.
-  execute l:window . 'wincmd w'
-  call cursor(l:line, l:col)
+function s:handle_position(pos, offset)
+  return [a:pos.line, byteidxcomp(getline(a:pos.line), a:pos.col + a:offset)]
 endfunction
 
 " ### Give
@@ -742,22 +647,6 @@ function s:lookup()
 
   echom 'Cursor not on hole.'
   return -1
-endfunction
-
-" Go to next character; return 1 if successful, 0 if at end of file.
-function s:next()
-  let l:line = line('.')
-  let l:col = col('.')
-
-  if l:col < col('$') - 1
-    call cursor(l:line, l:col + 1)
-    return 1
-  elseif l:line < line('$')
-    call cursor(l:line + 1, 1)
-    return 1
-  endif
-
-  return 0
 endfunction
 
 " Replace text at the given location, preserving cursor position.
