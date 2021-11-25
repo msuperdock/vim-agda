@@ -3,6 +3,7 @@
 A neovim plugin for Agda, featuring:
 
 - Asynchronous type-checking.
+- Interaction with Agda executable (see functions [here](#functions)).
 - Simple & correct syntax highlighting.
 - Unicode character input (e.g. `\to` for `→`).
 
@@ -43,7 +44,7 @@ autocmd BufWinEnter *.agda noremap <silent> <buffer> <leader>l :call agda#load()
 This binds `<leader>l` to `agda#load()` for all `.agda` files.
 
 | function | emacs | description |
-| --- | --- |
+| --- | --- | --- |
 | `agda#load()` | `C-c C-l` | Load or reload Agda. |
 | `agda#abort()` | `C-c C-x C-a` | Abort the current Agda command. |
 | `agda#next()` | `C-c C-f` | Move cursor to next hole. |
