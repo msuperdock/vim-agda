@@ -33,10 +33,10 @@ function agda#load()
   let s:code_window = winnr()
   let s:data = ''
 
-  call s:send('Cmd_load'
-    \ . ' ' . s:quote(s:code_file)
-    \ . ' []'
-    \ )
+  call s:send(['Cmd_load'
+    \ , s:quote(s:code_file)
+    \ , '[]'
+    \ ])
 endfunction
 
 " ### Abort
@@ -52,7 +52,7 @@ function agda#abort()
     return
   endif
 
-  call s:send('Cmd_abort', 1)
+  call s:send(['Cmd_abort'], 1)
 endfunction
 
 " ### Next
@@ -112,18 +112,18 @@ function agda#infer()
   endif
 
   if l:id >= 0
-    call s:send('Cmd_infer'
-      \ . ' Simplified'
-      \ . ' ' . l:id
-      \ . ' noRange'
-      \ . ' ' . s:quote(l:input)
-      \ )
+    call s:send(['Cmd_infer'
+      \ , 'Simplified'
+      \ , l:id
+      \ , 'noRange'
+      \ , s:quote(l:input)
+      \ ])
 
   else
-    call s:send('Cmd_infer_toplevel'
-      \ . ' Simplified'
-      \ . ' ' . s:quote(l:input)
-      \ )
+    call s:send(['Cmd_infer_toplevel'
+      \ , 'Simplified'
+      \ , s:quote(l:input)
+      \ ])
 
   endif
 endfunction
@@ -148,12 +148,12 @@ function agda#give()
     return
   endif
 
-  call s:send('Cmd_give'
-    \ . ' WithoutForce'
-    \ . ' ' . l:id
-    \ . ' noRange'
-    \ . ' ' . s:quote(l:input)
-    \ )
+  call s:send(['Cmd_give'
+    \ , 'WithoutForce'
+    \ , l:id
+    \ , 'noRange'
+    \ , s:quote(l:input)
+    \ ])
 endfunction
 
 " ### Refine
@@ -177,12 +177,12 @@ function agda#refine()
     return
   endif
 
-  call s:send('Cmd_refine_or_intro'
-    \ . ' False'
-    \ . ' ' . l:id
-    \ . ' noRange'
-    \ . ' ' . s:quote(l:input)
-    \ )
+  call s:send(['Cmd_refine_or_intro'
+    \ , 'False'
+    \ , l:id
+    \ , 'noRange'
+    \ , s:quote(l:input)
+    \ ])
 endfunction
 
 " ### Context
@@ -198,12 +198,12 @@ function agda#context()
     return
   endif
 
-  call s:send('Cmd_goal_type_context'
-    \ . ' Simplified'
-    \ . ' ' . l:id
-    \ . ' noRange'
-    \ . ' ""'
-    \ )
+  call s:send(['Cmd_goal_type_context'
+    \ , 'Simplified'
+    \ , l:id
+    \ , 'noRange'
+    \ , s:quote('')
+    \ ])
 endfunction
 
 " ### Unused
@@ -304,23 +304,34 @@ function s:handle_line(line)
   let s:data = ''
 
   " Handle goals.
-  if l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'AllGoalsWarnings'
+  if l:json.kind ==# 'DisplayInfo'
+    \ && l:json.info.kind ==# 'AllGoalsWarnings'
     call s:handle_goals_all(l:json.info)
 
   " Handle errors.
-  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'Error'
+  elseif l:json.kind ==# 'DisplayInfo'
+    \ && l:json.info.kind ==# 'Error'
     call s:handle_error(l:json.info)
 
+  " Handle inferred type at hole.
+  elseif l:json.kind ==# 'DisplayInfo'
+    \ && l:json.info.kind ==# 'GoalSpecific'
+    \ && l:json.info.goalInfo.kind ==# 'InferredType'
+    call s:handle_infer(l:json.info.goalInfo.expr)
+
   " Handle context.
-  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'GoalSpecific'
+  elseif l:json.kind ==# 'DisplayInfo'
+    \ && l:json.info.kind ==# 'GoalSpecific'
     call s:handle_context(l:json.info.goalInfo)
 
   " Handle inferred type.
-  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'InferredType'
+  elseif l:json.kind ==# 'DisplayInfo'
+    \ && l:json.info.kind ==# 'InferredType'
     call s:handle_infer(l:json.info.expr)
 
   " Handle introduction not found error.
-  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'IntroNotFound'
+  elseif l:json.kind ==# 'DisplayInfo'
+    \ && l:json.info.kind ==# 'IntroNotFound'
     call s:handle_loading(0)
     echom 'No introduction forms found.'
 
@@ -753,7 +764,7 @@ function s:replace(window, start, end, str)
   execute l:window . 'wincmd w'
 endfunction
 
-" Send command to the Agda job.
+" Send command, as a list of tokens, to the Agda job.
 " The optional argument indicates whether to send an indirect command.
 function s:send(command, ...)
   let l:indirect = get(a:, 1)
@@ -767,7 +778,7 @@ function s:send(command, ...)
     \ . ' ' . s:quote(s:code_file)
     \ . ' None'
     \ . (l:indirect ? ' Indirect' : ' Direct')
-    \ . ' (' . a:command . ')'
+    \ . ' (' . join(a:command) . ')'
     \ . "\n"
     \ )
 endfunction
