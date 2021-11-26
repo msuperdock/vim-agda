@@ -27,7 +27,7 @@ Optionally, install the following:
 - [vim-foldout](https://github.com/msuperdock/vim-foldout) (Vim plugin, required
   for syntax highlighting & folding in interaction buffer.)
 - [agda-unused](https://github.com/msuperdock/agda-unused) (Haskell application,
-  required for the `agda#unused()` function.)
+  required for `agda#unused()` function.)
 
 ## Functions
 
