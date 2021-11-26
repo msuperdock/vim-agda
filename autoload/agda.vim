@@ -764,7 +764,7 @@ function s:send(command, ...)
 
   call chansend(g:agda_job
     \ , 'IOTCM'
-    \ . ' "' . s:code_file . '"'
+    \ . ' ' . s:quote(s:code_file)
     \ . ' None'
     \ . (l:indirect ? ' Indirect' : ' Direct')
     \ . ' (' . a:command . ')'
