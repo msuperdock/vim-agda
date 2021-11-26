@@ -34,7 +34,7 @@ function agda#load()
   let s:data = ''
 
   call s:send('Cmd_load'
-    \ . ' "' . s:code_file . '"'
+    \ . ' ' . s:quote(s:code_file)
     \ . ' []'
     \ )
 endfunction
@@ -116,13 +116,13 @@ function agda#infer()
       \ . ' Simplified'
       \ . ' ' . l:id
       \ . ' noRange'
-      \ . ' "' . l:input . '"'
+      \ . ' ' . s:quote(l:input)
       \ )
 
   else
     call s:send('Cmd_infer_toplevel'
       \ . ' Simplified'
-      \ . ' "' . l:input . '"'
+      \ . ' ' . s:quote(l:input)
       \ )
 
   endif
@@ -152,7 +152,7 @@ function agda#give()
     \ . ' WithoutForce'
     \ . ' ' . l:id
     \ . ' noRange'
-    \ . ' "' . l:input . '"'
+    \ . ' ' . s:quote(l:input)
     \ )
 endfunction
 
@@ -181,7 +181,7 @@ function agda#refine()
     \ . ' False'
     \ . ' ' . l:id
     \ . ' noRange'
-    \ . ' "' . l:input . '"'
+    \ . ' ' . s:quote(l:input)
     \ )
 endfunction
 
@@ -695,6 +695,11 @@ function s:lookup(...)
   endif
 
   return -1
+endfunction
+
+" Wrap a string in double quotes.
+function s:quote(str)
+  return '"' . a:str . '"'
 endfunction
 
 " Replace text at the given location, preserving cursor position.
