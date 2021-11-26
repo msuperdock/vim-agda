@@ -112,5 +112,6 @@ enabled, then:
 - The sections can be folded using
  [vim-foldout](https://github.com/msuperdock/vim-foldout) commands.
 
-Otherwise, the interaction buffer is not syntax-highlighted at all.
+If [vim-foldout](https://github.com/msuperdock/vim-foldout) is not enabled, then
+the interaction buffer is not syntax-highlighted at all.
 
