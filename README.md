@@ -22,11 +22,12 @@ Use your preferred installation method. For example, with
 Plug 'msuperdock/vim-agda'
 ```
 
-If you'd like to use the optional integrations, you can find installation
-instructions at the following links:
+Optionally, install the following:
 
-- [vim-foldout](https://github.com/msuperdock/vim-foldout)
-- [agda-unused](https://github.com/msuperdock/agda-unused)
+- [vim-foldout](https://github.com/msuperdock/vim-foldout) (Vim plugin, required
+  for syntax highlighting & folding in interaction buffer.)
+- [agda-unused](https://github.com/msuperdock/agda-unused) (Haskell application,
+  required for the `agda#unused()` function.)
 
 ## Functions
 
@@ -53,7 +54,7 @@ This binds `<leader>l` to `agda#load()` for all `.agda` files.
 
 The `agda#unused()` function requires the
 [agda-unused](https://github.com/msuperdock/agda-unused) executable (version
-`>= 0.3.0`) to be installed on your system.
+`>= 0.3.0`) to be installed.
 
 ## Options
 
