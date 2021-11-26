@@ -4,15 +4,12 @@ A neovim plugin for Agda, featuring:
 
 - Asynchronous type-checking.
 - Interaction with Agda executable (see functions [here](#functions)).
-- Simple & correct syntax highlighting.
 - Unicode character input (e.g. `\to` for `→`).
-
-Optional integrations:
-
-- Syntax highlighting & folding in interaction buffer via
-  [vim-foldout](https://github.com/msuperdock/vim-foldout).
-- Unused code checking via
-  [agda-unused](https://github.com/msuperdock/agda-unused).
+- Simple & correct syntax highlighting.
+- Optional syntax highlighting & folding in interaction buffer via
+ [vim-foldout](https://github.com/msuperdock/vim-foldout).
+- Optional unused code checking via
+ [agda-unused](https://github.com/msuperdock/agda-unused).
 
 Supported Agda versions: `>= 2.6.2 && < 2.6.3`.
 
@@ -28,8 +25,8 @@ Plug 'msuperdock/vim-agda'
 If you'd like to use the optional integrations, you can find installation
 instructions for vim-foldout & agda-unused at the following links:
 
-- [vim-foldout](https://github.com/msuperdock/vim-foldout).
-- [agda-unused](https://github.com/msuperdock/agda-unused).
+- [vim-foldout](https://github.com/msuperdock/vim-foldout)
+- [agda-unused](https://github.com/msuperdock/agda-unused)
 
 ## Functions
 
@@ -110,9 +107,9 @@ If [vim-foldout](https://github.com/msuperdock/vim-foldout) is installed &
 enabled, then:
 
 - The goals are syntax-highlighted as Agda code.
-- The two headings, "Goals" & "Warnings" are syntax-highlighted as headings.
-- The two sections can be folded using
-  [vim-foldout](https://github.com/msuperdock/vim-foldout) commands.
+- The headings are syntax-highlighted as headings.
+- The sections can be folded using
+ [vim-foldout](https://github.com/msuperdock/vim-foldout) commands.
 
 Otherwise, the interaction buffer is not syntax-highlighted at all.
 
