@@ -23,7 +23,7 @@ Plug 'msuperdock/vim-agda'
 ```
 
 If you'd like to use the optional integrations, you can find installation
-instructions for vim-foldout & agda-unused at the following links:
+instructions at the following links:
 
 - [vim-foldout](https://github.com/msuperdock/vim-foldout)
 - [agda-unused](https://github.com/msuperdock/agda-unused)
@@ -57,8 +57,8 @@ The `agda#unused()` function requires the
 
 ## Options
 
-vim-agda provides the following global option variables for configuration. You
-can set an option in your `init.vim` using, for example:
+vim-agda provides the global options in the table below. You can set an option
+in your `init.vim` using, for example:
 
 ```
 let g:agda_args = ['--local-interfaces']
