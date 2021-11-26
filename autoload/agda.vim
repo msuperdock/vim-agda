@@ -33,10 +33,13 @@ function agda#load()
   let s:code_window = winnr()
   let s:data = ''
 
-  call s:send(['Cmd_load'
+  let l:command =
+    \ [ 'Cmd_load'
     \ , s:quote(s:code_file)
     \ , '[]'
-    \ ])
+    \ ]
+
+  call s:send(l:command)
 endfunction
 
 " ### Abort
@@ -112,20 +115,24 @@ function agda#infer()
   endif
 
   if l:id >= 0
-    call s:send(['Cmd_infer'
+    let l:command =
+      \ [ 'Cmd_infer'
       \ , 'Simplified'
       \ , l:id
       \ , 'noRange'
       \ , s:quote(l:input)
-      \ ])
+      \ ]
 
   else
-    call s:send(['Cmd_infer_toplevel'
+    let l:command =
+      \ [ 'Cmd_infer_toplevel'
       \ , 'Simplified'
       \ , s:quote(l:input)
-      \ ])
+      \ ]
 
   endif
+
+  call s:send(l:command)
 endfunction
 
 " ### Give
@@ -148,12 +155,15 @@ function agda#give()
     return
   endif
 
-  call s:send(['Cmd_give'
+  let l:command =
+    \ [ 'Cmd_give'
     \ , 'WithoutForce'
     \ , l:id
     \ , 'noRange'
     \ , s:quote(l:input)
-    \ ])
+    \ ]
+  
+  call s:send(l:command)
 endfunction
 
 " ### Refine
@@ -177,12 +187,15 @@ function agda#refine()
     return
   endif
 
-  call s:send(['Cmd_refine_or_intro'
+  let l:command =
+    \ [ 'Cmd_refine_or_intro'
     \ , 'False'
     \ , l:id
     \ , 'noRange'
     \ , s:quote(l:input)
-    \ ])
+    \ ]
+  
+  call s:send(l:command)
 endfunction
 
 " ### Context
@@ -198,12 +211,15 @@ function agda#context()
     return
   endif
 
-  call s:send(['Cmd_goal_type_context'
+  let l:command =
+    \ [ 'Cmd_goal_type_context'
     \ , 'Simplified'
     \ , l:id
     \ , 'noRange'
     \ , s:quote('')
-    \ ])
+    \ ]
+  
+  call s:send(l:command)
 endfunction
 
 " ### Unused
@@ -708,6 +724,11 @@ function s:lookup(...)
   return -1
 endfunction
 
+" Wrap a string in parentheses.
+function s:parens(str)
+  return '(' . a:str . ')'
+endfunction
+
 " Wrap a string in double quotes.
 function s:quote(str)
   return '"' . a:str . '"'
@@ -773,14 +794,15 @@ function s:send(command, ...)
     call s:handle_loading(1)
   endif
 
-  call chansend(g:agda_job
-    \ , 'IOTCM'
-    \ . ' ' . s:quote(s:code_file)
-    \ . ' None'
-    \ . (l:indirect ? ' Indirect' : ' Direct')
-    \ . ' (' . join(a:command) . ')'
-    \ . "\n"
-    \ )
+  let l:command =
+    \ [ 'IOTCM'
+    \ , s:quote(s:code_file)
+    \ , 'None'
+    \ , (l:indirect ? 'Indirect' : 'Direct')
+    \ , s:parens(join(a:command))
+    \ ]
+
+  call chansend(g:agda_job, join(l:command) . "\n")
 endfunction
 
 " Check whether Agda is loaded on the current file.
