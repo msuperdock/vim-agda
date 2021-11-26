@@ -22,7 +22,7 @@ Use your preferred installation method. For example, with
 Plug 'msuperdock/vim-agda'
 ```
 
-Optionally, install the following:
+Optionally, also install the following:
 
 - [vim-foldout](https://github.com/msuperdock/vim-foldout) (Vim plugin, required
   for syntax highlighting & folding in interaction buffer.)
