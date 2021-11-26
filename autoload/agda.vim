@@ -107,10 +107,8 @@ function agda#infer()
 
   let l:id = s:lookup()
 
-  let l:input = s:escape(input('Infer: '))
-  if l:input ==# ''
-    redraw
-    echom 'No expression given.'
+  let l:input = s:input('Infer', 1)
+  if l:input ==# '.'
     return
   endif
 
@@ -148,10 +146,8 @@ function agda#give()
     return
   endif
 
-  let l:input = s:escape(input('Give: '))
-  if l:input ==# ''
-    redraw
-    echom 'No expression given.'
+  let l:input = s:input('Give', 1)
+  if l:input ==# '.'
     return
   endif
 
@@ -179,10 +175,7 @@ function agda#refine()
     return
   endif
 
-  let l:input = s:escape(input(
-    \ { 'prompt': 'Refine: '
-    \ , 'cancelreturn': '.'
-    \ }))
+  let l:input = s:input('Refine')
   if l:input ==# '.'
     return
   endif
@@ -623,11 +616,6 @@ endfunction
 
 " ## Print
 
-" Escape a string for passing to the Agda executable.
-function s:escape(str)
-  return escape(a:str, '\"')
-endfunction
-
 " Format a section with heading & content.
 function s:section(name, content)
   return '-- ## '
@@ -701,6 +689,27 @@ endfunction
 " Go to the nth character in the buffer.
 function s:goto(n)
   execute 'goto ' . byteidxcomp(join(getline(1, '$'), "\n"), a:n)
+endfunction
+
+" Get input from the user.
+" The `prompt` string should not include a trailing colon or space.
+" The optional argument indicates whether to fail on all-whitespace input.
+" Return an escaped string, or '.' on failure.
+function s:input(prompt, ...)
+  let l:strict = get(a:, 1)
+
+  let l:input = input(
+    \ { 'prompt': a:prompt . ': '
+    \ , 'cancelreturn': '.'
+    \ })
+
+  if l:strict && l:input !~# '\m\S'
+    redraw
+    echom 'No expression given.'
+    return '.'
+  endif
+
+  return escape(l:input, '\"')
 endfunction
 
 " Get id of interaction point at cursor, or return -1 on failure.
