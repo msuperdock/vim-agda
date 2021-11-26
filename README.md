@@ -47,6 +47,7 @@ This binds `<leader>l` to `agda#load()` for all `.agda` files.
 | `agda#abort()` | `C-c C-x C-a` | Abort the current Agda command. |
 | `agda#next()` | `C-c C-f` | Move cursor to next hole. |
 | `agda#previous()` | `C-c C-b` | Move cursor to previous hole. |
+| `agda#infer()` | `C-c C-d` | Infer type at hole, or at top level if no hole. |
 | `agda#give()` | `C-c C-SPC` | Give expression for hole at cursor. |
 | `agda#refine()` | `C-c C-r` | Refine expression for hole at cursor. |
 | `agda#context()` | `C-c C-e` | Display context for hole at cursor. |

@@ -95,6 +95,39 @@ function agda#previous()
   echom 'No hole found.'
 endfunction
 
+" ### Infer
+
+function agda#infer()
+  if s:status() < 0
+    return
+  endif
+
+  let l:id = s:lookup()
+
+  let l:input = s:escape(input('Infer: '))
+  if l:input ==# ''
+    redraw
+    echom 'No expression given.'
+    return
+  endif
+
+  if l:id >= 0
+    call s:send('Cmd_infer'
+      \ . ' Simplified'
+      \ . ' ' . l:id
+      \ . ' noRange'
+      \ . ' "' . l:input . '"'
+      \ )
+
+  else
+    call s:send('Cmd_infer_toplevel'
+      \ . ' Simplified'
+      \ . ' "' . l:input . '"'
+      \ )
+
+  endif
+endfunction
+
 " ### Give
 
 " Give expression for hole at cursor.
@@ -103,7 +136,7 @@ function agda#give()
     return
   endif
 
-  let l:id = s:lookup()
+  let l:id = s:lookup(1)
   if l:id < 0
     return
   endif
@@ -131,7 +164,7 @@ function agda#refine()
     return
   endif
 
-  let l:id = s:lookup()
+  let l:id = s:lookup(1)
   if l:id < 0
     return
   endif
@@ -160,7 +193,7 @@ function agda#context()
     return
   endif
 
-  let l:id = s:lookup()
+  let l:id = s:lookup(1)
   if l:id < 0
     return
   endif
@@ -282,6 +315,10 @@ function s:handle_line(line)
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'GoalSpecific'
     call s:handle_context(l:json.info.goalInfo)
 
+  " Handle inferred type.
+  elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'InferredType'
+    call s:handle_infer(l:json.info.expr)
+
   " Handle introduction not found error.
   elseif l:json.kind ==# 'DisplayInfo' && l:json.info.kind ==# 'IntroNotFound'
     call s:handle_loading(0)
@@ -377,6 +414,12 @@ function s:handle_give(result, id)
       return
     endif
   endfor
+endfunction
+
+" ### Infer
+
+function s:handle_infer(result)
+  call s:handle_clear('Inferred type: ' . a:result)
 endfunction
 
 " ### Context
@@ -634,7 +677,10 @@ function s:goto(n)
 endfunction
 
 " Get id of interaction point at cursor, or return -1 on failure.
-function s:lookup()
+" The optional argument indicates whether to print an error message on failure.
+function s:lookup(...)
+  let l:print = get(a:, 1)
+
   let l:line = line('.')
   let l:col = col('.')
   for l:point in s:points
@@ -644,7 +690,10 @@ function s:lookup()
     endif
   endfor
 
-  echom 'Cursor not on hole.'
+  if l:print
+    echom 'Cursor not on hole.'
+  endif
+
   return -1
 endfunction
 
