@@ -199,7 +199,7 @@ function agda#context()
   endif
 
   call s:send('Cmd_goal_type_context'
-    \ . ' Normalised'
+    \ . ' Simplified'
     \ . ' ' . l:id
     \ . ' noRange'
     \ . ' ""'
