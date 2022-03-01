@@ -409,11 +409,11 @@ endfunction
 
 " Initialize script-local points list.
 function s:handle_points(points)
-  " If first point is missing range, determine ranges by scanning file.
-  if a:points != [] && a:points[0].range == []
-    call s:handle_points_manual(a:points)
-  else
+  " If any points are missing range, determine ranges by scanning file.
+  if s:handle_points_valid(a:points)
     let s:points = map(copy(a:points), {_, val -> s:handle_point(val)})
+  else
+    call s:handle_points_manual(a:points)
   endif
 endfunction
 
@@ -427,6 +427,17 @@ endfunction
 
 function s:handle_position(pos, offset)
   return [a:pos.line, byteidxcomp(getline(a:pos.line), a:pos.col + a:offset)]
+endfunction
+
+" Determine whether the given points list has nonempty ranges.
+function s:handle_points_valid(points)
+  for l:point in a:points
+    if l:point.range == []
+      return 0
+    endif
+  endfor
+
+  return 1
 endfunction
 
 function s:handle_points_manual(points)
