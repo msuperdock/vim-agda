@@ -158,7 +158,7 @@ function agda#give()
     \ , 'noRange'
     \ , s:quote(l:input)
     \ ]
-  
+
   call s:send(l:command)
 endfunction
 
@@ -187,7 +187,7 @@ function agda#refine()
     \ , 'noRange'
     \ , s:quote(l:input)
     \ ]
-  
+
   call s:send(l:command)
 endfunction
 
@@ -211,7 +211,7 @@ function agda#context()
     \ , 'noRange'
     \ , s:quote('')
     \ ]
-  
+
   call s:send(l:command)
 endfunction
 
@@ -772,7 +772,7 @@ function agda#indent(lnum)
   if a:lnum <= 1
     return -1
   endif
-    
+
   let l:line = getline(a:lnum - 1)
 
   let l:directive
@@ -945,7 +945,7 @@ endfunction
 " The optional argument indicates whether to send an indirect command.
 function s:send(command, ...)
   let l:indirect = get(a:, 1)
-  
+
   if !l:indirect
     call s:handle_loading(1)
   endif
