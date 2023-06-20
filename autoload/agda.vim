@@ -636,9 +636,13 @@ function s:handle_output(name, content, ...)
   let l:current = winnr()
 
   " Switch to Agda buffer.
-  let l:agda = bufwinnr('Agda')
-  if l:agda >= 0
-    execute l:agda . 'wincmd w'
+  let l:agda_buffer = bufnr('Agda')
+  let l:agda_window = bufwinnr('Agda')
+  if l:agda_window >= 0
+    execute l:agda_window . 'wincmd w'
+  elseif l:agda_buffer >= 0
+    belowright 10new
+    execute l:agda_buffer . 'buffer'
   else
     belowright 10split Agda
     let &l:buftype = 'nofile'
