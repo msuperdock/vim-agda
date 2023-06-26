@@ -34,6 +34,10 @@ function agda#load()
   redraw
   echom 'Loading Agda.'
 
+  if !exists('s:agda_buffer')
+    let s:agda_buffer = -1
+  endif
+
   let s:code_buffer = bufnr()
   let s:code_file = expand('%:p')
   let s:data = ''
@@ -1000,7 +1004,7 @@ endfunction
 
 " Go to agda window; return -1 if none.
 function s:to_agda()
-  let l:agda_window = exists('s:agda_buffer') ? bufwinnr(s:agda_buffer) : -1
+  let l:agda_window = bufwinnr(s:agda_buffer)
 
   if l:agda_window >= 0
     call s:to_window(l:agda_window)
