@@ -4,12 +4,9 @@
 
 " Load current file with no command-line options.
 function agda#load()
-  silent update
-
-  augroup agda
-    autocmd! * <buffer>
-    autocmd QuitPre <buffer> call s:handle_delete()
-  augroup end
+  if s:setup() < 0
+    return -1
+  endif
 
   if exists('s:agda_loading') && s:agda_loading > 0
     echom 'Loading Agda (command ignored).'
@@ -34,12 +31,6 @@ function agda#load()
   redraw
   echom 'Loading Agda.'
 
-  if !exists('s:agda_buffer')
-    let s:agda_buffer = -1
-  endif
-
-  let s:code_buffer = bufnr()
-  let s:code_file = expand('%:p')
   let s:data = ''
 
   let l:command =
@@ -49,6 +40,28 @@ function agda#load()
     \ ]
 
   call s:send(l:command)
+endfunction
+
+" Handle initial setup common to Agda & agda-unused, or return -1 on failure.
+function s:setup()
+  silent update
+
+  if exists('s:agda_loading') && s:agda_loading > 0
+    echom 'Loading Agda (command ignored).'
+    return -1
+  endif
+
+  if !exists('s:agda_buffer')
+    let s:agda_buffer = -1
+  endif
+
+  let s:code_buffer = bufnr()
+  let s:code_file = expand('%:p')
+
+  augroup agda
+    autocmd! * <buffer>
+    autocmd QuitPre <buffer> call s:handle_delete()
+  augroup end
 endfunction
 
 " ### Abort
@@ -230,12 +243,10 @@ endfunction
 
 " Check for unused code in the current module.
 function agda#unused()
-  if exists('s:agda_loading') && s:agda_loading > 0
-    echom 'Loading Agda (command ignored).'
-    return
+  if s:setup() < 0
+    return -1
   endif
 
-  silent update
   let l:agda_unused_job = jobstart
     \ ( ['agda-unused', expand('%'), '--json'] + g:agda_unused_args
     \ , {'on_stdout': function('s:handle_unused')}
