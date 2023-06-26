@@ -654,11 +654,11 @@ function s:handle_output(name, content, ...)
   endif
 
   " Write output.
-  let &l:readonly = 0
+  let &l:modifiable = 1
   silent %delete _
   silent put =a:content
   execute 'normal! ggdd'
-  let &l:readonly = 1
+  let &l:modifiable = 0
   silent! %foldopen!
 
   " Enable foldout if loaded.
