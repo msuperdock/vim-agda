@@ -640,22 +640,24 @@ function s:handle_output(name, content, ...)
   " Save initial window.
   let l:current = winnr()
 
-  " Switch to Agda buffer.
-  let l:agda_buffer = bufnr('Agda')
-  let l:agda_window = bufwinnr('Agda')
-  if l:agda_window >= 0
-    execute l:agda_window . 'wincmd w'
-  elseif l:agda_buffer >= 0
-    belowright 10new
-    execute l:agda_buffer . 'buffer'
+  " Compute Agda window number.
+  if exists('s:agda_buffer')
+    let l:agda_window = bufwinnr(s:agda_buffer)
   else
-    belowright 10split Agda
-    let &l:buftype = 'nofile'
-    let &l:swapfile = 0
+    let l:agda_window = -1
   endif
 
-  " Change buffer name.
-  execute 'file Agda (' . a:name . ')'
+  " Switch to Agda buffer.
+  let l:name = 'Agda (' . a:name . ')'
+  if l:agda_window >= 0
+    execute l:agda_window . 'wincmd w'
+    execute 'file ' . l:name
+  else
+    execute 'belowright 10split ' . l:name
+    let &l:buftype = 'nofile'
+    let &l:swapfile = 0
+    let s:agda_buffer = bufnr()
+  endif
 
   " Write output.
   let &l:readonly = 0
@@ -707,6 +709,7 @@ endfunction
 
 " Clear the agda buffer, and echo the given message string.
 function s:handle_clear(message)
+  let s:agda_buffer = -1
   let s:agda_loading = 0
   silent! bdelete Agda
   echom a:message
