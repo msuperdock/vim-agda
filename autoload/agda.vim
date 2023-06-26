@@ -105,6 +105,8 @@ endfunction
 
 " ### Infer
 
+" Infer type of expression in hole at cursor.
+" If no hole is found, prompt for an expression.
 function agda#infer()
   if s:status() < 0
     return
