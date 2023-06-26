@@ -8,7 +8,7 @@ function agda#load()
 
   augroup agda
     autocmd! * <buffer>
-    autocmd BufUnload <buffer> silent! bdelete Agda
+    autocmd QuitPre <buffer> call s:handle_delete()
   augroup end
 
   if exists('s:agda_loading') && s:agda_loading > 0
@@ -707,11 +707,10 @@ function s:handle_outputs(outputs)
     \ )
 endfunction
 
-" Clear the agda buffer, and echo the given message string.
+" Clear the Agda buffer, and echo the given message string.
 function s:handle_clear(message)
-  let s:agda_buffer = -1
   let s:agda_loading = 0
-  silent! bdelete Agda
+  call s:handle_delete()
   echom a:message
 endfunction
 
@@ -751,6 +750,17 @@ function s:append_output(outputs, name, content, ...)
     \ , 'content': a:content
     \ , 'code': l:code
     \ })
+endfunction
+
+" ### Delete
+
+" Delete the Agda buffer.
+function s:handle_delete()
+  if s:agda_buffer >= 0
+    execute s:agda_buffer . 'bdelete'
+  endif
+
+  let s:agda_buffer = -1
 endfunction
 
 " ## Print
