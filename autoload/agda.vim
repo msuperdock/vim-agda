@@ -34,8 +34,8 @@ function agda#load()
   redraw
   echom 'Loading Agda.'
 
+  let s:code_buffer = bufnr()
   let s:code_file = expand('%:p')
-  let s:code_window = winnr()
   let s:data = ''
 
   let l:command =
@@ -456,7 +456,7 @@ function s:handle_points_manual(points)
   let l:end = '\($\|[[:space:].;{}()@"]\)'
 
   " Go to beginning of code window.
-  execute s:code_window . 'wincmd w'
+  call s:to_code()
   call cursor(1, 1)
 
   " Initialize points list.
@@ -552,7 +552,7 @@ function s:handle_points_manual(points)
   endwhile
 
   " Restore original position.
-  execute l:window . 'wincmd w'
+  call s:to_window(l:window)
   call cursor(l:line, l:col)
 endfunction
 
@@ -561,7 +561,7 @@ endfunction
 function s:handle_give(result, id)
   for l:point in s:points
     if l:point.id == a:id
-      call s:replace(s:code_window, l:point.start, l:point.end, a:result)
+      call s:replace(bufwinnr(s:code_buffer), l:point.start, l:point.end, a:result)
       silent update
       return
     endif
@@ -640,17 +640,9 @@ function s:handle_output(name, content, ...)
   " Save initial window.
   let l:current = winnr()
 
-  " Compute Agda window number.
-  if exists('s:agda_buffer')
-    let l:agda_window = bufwinnr(s:agda_buffer)
-  else
-    let l:agda_window = -1
-  endif
-
   " Switch to Agda buffer.
   let l:name = 'Agda (' . a:name . ')'
-  if l:agda_window >= 0
-    execute l:agda_window . 'wincmd w'
+  if s:to_agda() >= 0
     execute 'file ' . l:name
   else
     execute 'belowright 10split ' . l:name
@@ -677,7 +669,7 @@ function s:handle_output(name, content, ...)
   endif
 
   " Restore original window.
-  execute l:current . 'wincmd w'
+  call s:to_window(l:current)
 endfunction
 
 " Print the given outputs in the Agda buffer, under separate headings.
@@ -722,14 +714,12 @@ function s:handle_loading(loading)
   " Save initial window.
   let l:current = winnr()
 
-  " Get Agda buffer window.
-  let l:agda = bufwinnr('Agda')
-  if l:agda < 0
+  " Go to Agda window.
+  if s:to_agda() < 0
     return
   endif
 
   " Change Agda buffer name, if necessary.
-  execute l:agda . 'wincmd w'
   let l:file = expand('%')
   let l:match = match(l:file, '\m \[loading\]$')
   if a:loading == 0 && l:match >= 0 
@@ -739,7 +729,7 @@ function s:handle_loading(loading)
   endif
 
   " Restore original window.
-  execute l:current . 'wincmd w'
+  call s:to_window(l:current)
 endfunction
 
 function s:append_output(outputs, name, content, ...)
@@ -913,7 +903,7 @@ endfunction
 function s:replace(window, start, end, str)
   " Save window.
   let l:window = winnr()
-  execute a:window . 'wincmd w'
+  call s:to_window(a:window)
 
   " Save cursor position.
   let l:line = line('.')
@@ -956,7 +946,7 @@ function s:replace(window, start, end, str)
   endif
 
   " Restore window.
-  execute l:window . 'wincmd w'
+  call s:to_window(l:window)
 endfunction
 
 " Send command, as a list of tokens, to the Agda job.
@@ -989,8 +979,8 @@ function s:status(...)
   let l:loaded
     \ = exists('g:agda_job')
     \ && (l:mode == 2 || exists('s:agda_loading'))
+    \ && (l:mode == 2 || exists('s:code_buffer'))
     \ && (l:mode == 2 || exists('s:code_file'))
-    \ && (l:mode == 2 || exists('s:code_window'))
     \ && (l:mode == 2 || exists('s:points'))
     \ && g:agda_job >= 0
 
@@ -1004,5 +994,26 @@ function s:status(...)
     echom 'Loading Agda (command ignored).'
     return -1
   endif
+endfunction
+
+" Go to agda window; return -1 if none.
+function s:to_agda()
+  let l:agda_window = exists('s:agda_buffer') ? bufwinnr(s:agda_buffer) : -1
+
+  if l:agda_window >= 0
+    call s:to_window(l:agda_window)
+  else
+    return -1
+  endif
+endfunction
+
+" Go to code window.
+function s:to_code()
+  call s:to_window(bufwinnr(s:code_buffer))
+endfunction
+
+" Go to given window number.
+function s:to_window(window)
+  execute a:window . 'wincmd w'
 endfunction
 
