@@ -57,11 +57,7 @@ function s:setup()
 
   let s:code_buffer = bufnr()
   let s:code_file = expand('%:p')
-
-  augroup agda
-    autocmd! * <buffer>
-    autocmd QuitPre <buffer> call s:handle_delete()
-  augroup end
+  call s:auto_delete()
 endfunction
 
 " ### Abort
@@ -671,6 +667,7 @@ function s:handle_output(name, content, ...)
     let &l:buftype = 'nofile'
     let &l:swapfile = 0
     let s:agda_buffer = bufnr()
+    call s:auto_delete()
   endif
 
   " Write output.
@@ -773,6 +770,14 @@ function s:handle_delete()
   endif
 
   let s:agda_buffer = -1
+endfunction
+
+" Set up automatic call to `s:handle_delete()`.
+function s:auto_delete()
+  augroup agda
+    autocmd! * <buffer>
+    autocmd QuitPre <buffer> call s:handle_delete()
+  augroup end
 endfunction
 
 " ## Print
