@@ -247,10 +247,15 @@ function agda#unused()
     return -1
   endif
 
-  let l:agda_unused_job = jobstart
-    \ ( ['agda-unused', expand('%'), '--json'] + g:agda_unused_args
-    \ , {'on_stdout': function('s:handle_unused')}
-    \ )
+  try
+    let l:agda_unused_job = jobstart
+      \ ( ['agda-unused', expand('%'), '--json'] + g:agda_unused_args
+      \ , {'on_stdout': function('s:handle_unused')}
+      \ )
+  catch /E475/
+    echom 'agda-unused executable not found.'
+    return
+  endtry
 
   if l:agda_unused_job < 0
     echom 'Failed to run agda-unused.'
