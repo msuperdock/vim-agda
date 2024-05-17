@@ -7,12 +7,10 @@ endif
 " Match identifiers not starting with capital letter.
 syntax match agdaIdentifier
   \ /[^[:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@=/
-  \ contains=agdaMixfixUnderscore
 
 " Match identifiers not containing a letter.
 syntax match agdaOperator
   \ /[^[:alpha:][:space:].;{}()@"]\+\($\|[[:space:];{}()@"]\)\@=/
-  \ contains=agdaMixfixUnderscore
 
 " Match identifiers starting with capital letter.
 syntax match agdaType
