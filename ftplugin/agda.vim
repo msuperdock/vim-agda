@@ -26,6 +26,10 @@ if !exists('g:agda_debug')
   let g:agda_debug = 0
 endif
 
+if !exists('g:agda_executable')
+    let g:agda_executable = 'agda'
+endif
+
 " ## Comments
 
 let &l:comments = 's1fl:{-,mb:-,ex:-},:--'

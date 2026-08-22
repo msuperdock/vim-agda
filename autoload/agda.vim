@@ -15,7 +15,7 @@ function agda#load()
 
   if !exists('g:agda_job') || g:agda_job < 0
     try
-      let g:agda_job = jobstart(['agda', '--interaction-json'] + g:agda_args
+      let g:agda_job = jobstart([g:agda_executable, '--interaction-json'] + g:agda_args
         \ , {'on_stdout': function('s:handle_event')})
     catch /E475/
       echom 'Agda executable not found.'
