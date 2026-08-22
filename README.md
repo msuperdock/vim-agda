@@ -68,6 +68,7 @@ let g:agda_args = ['--local-interfaces']
 
 | variable | default | description |
 | --- | --- | --- |
+| `g:agda_executable` | `'agda'` | Specifies the `agda` executable. |
 | `g:agda_args` | `[]` | Arguments for `agda` executable. |
 | `g:agda_unused_args` | `[]` | Arguments for `agda-unused` executable. |
 | `g:agda_debug` | `0` | Log interaction output to the messages buffer. |
