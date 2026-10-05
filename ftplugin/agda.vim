@@ -11,6 +11,11 @@ endif
 
 " ## Options
 
+" The agda executable.
+if !exists('g:agda_executable')
+  let g:agda_executable = 'agda'
+endif
+
 " A list of arguments for the agda executable.
 if !exists('g:agda_args')
   let g:agda_args = []
@@ -24,10 +29,6 @@ endif
 " Whether to log output from the Agda executable to the messages buffer.
 if !exists('g:agda_debug')
   let g:agda_debug = 0
-endif
-
-if !exists('g:agda_executable')
-    let g:agda_executable = 'agda'
 endif
 
 " ## Comments
